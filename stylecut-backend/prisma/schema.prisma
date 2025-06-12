@@ -1,0 +1,32 @@
+enerator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Cliente {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  telefone String
+  historico String?
+  agendamentos Agendamento[]
+}
+
+model Colaborador {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  agendamentos Agendamento[]
+}
+
+model Agendamento {
+  id            Int      @id @default(autoincrement())
+  horario       DateTime
+  servico       String
+  clienteId     Int
+  colaboradorId Int
+  cliente       Cliente     @relation(fields: [clienteId], references: [id])
+  colaborador   Colaborador @relation(fields: [colaboradorId], references: [id])
+}
