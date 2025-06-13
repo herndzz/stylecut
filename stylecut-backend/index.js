@@ -9,6 +9,9 @@ app.use(express.json());
 const appointmentsRoutes = require("./server/routes/appointments.js");
 app.use("/agendamentos", appointmentsRoutes);
 
+const clientesRoutes = require("./server/routes/clientes.js");
+app.use("/clientes", clientesRoutes);
+
 // Rota padrão (resposta simples para GET /)
 app.get("/", (req, res) => {
   res.send("✅ API StyleCut está rodando!");

@@ -1,4 +1,4 @@
-enerator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -8,16 +8,16 @@ datasource db {
 }
 
 model Cliente {
-  id       Int      @id @default(autoincrement())
-  nome     String
-  telefone String
-  historico String?
+  id           Int      @id @default(autoincrement())
+  nome         String
+  telefone     String
+  historico    String?
   agendamentos Agendamento[]
 }
 
 model Colaborador {
-  id       Int      @id @default(autoincrement())
-  nome     String
+  id           Int      @id @default(autoincrement())
+  nome         String
   agendamentos Agendamento[]
 }
 
