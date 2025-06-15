@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Cut</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Style Cut</h1>
+            <button id="toggle-theme" class="btn btn-outline-secondary">Alternar Tema</button>
+        </div>
+
+        <div class="container mt-3">
+            <button class="btn btn-outline-primary mb-2" type="button" data-bs-toggle="collapse"
+                data-bs-target="#guia-uso" aria-expanded="false" aria-controls="guia-uso" id="toggle-guia">
+                Mostrar Guia de Uso
+            </button>
+            <div class="collapse" id="guia-uso">
+                <div class="card card-body">
+                    <h3>Guia Rápido para Usar o Style Cut</h3>
+                    <p>Bem-vindo ao Style Cut! Siga estas instruções para gerenciar seus agendamentos, clientes,
+                        colaboradores e serviços:</p>
+                    <ol>
+                        <li><strong>Alternar Tema</strong>: Clique em "Alternar Tema" no topo para escolher entre modo
+                            claro e escuro.</li>
+                        <li><strong>Cadastrar Clientes</strong>: Na seção "Clientes", insira nome e telefone, clique em
+                            "Adicionar Cliente". Edite ou exclua na lista.</li>
+                        <li><strong>Cadastrar Colaboradores</strong>: Em "Colaboradores", adicione nome, especialidade e
+                            selecione serviços. Clique em "Adicionar Colaborador". Edite ou exclua na lista.</li>
+                        <li><strong>Cadastrar Serviços</strong>: Em "Serviços", insira nome e valor (ex.: R$ 50,00),
+                            clique em "Adicionar Serviço". Edite ou exclua na lista.</li>
+                        <li><strong>Fazer Agendamentos</strong>: Em "Agendamento", selecione cliente, colaborador,
+                            serviço, data e hora. Clique em "Agendar". Edite ou exclua na lista.</li>
+                        <li><strong>Dicas</strong>:
+                            <ul>
+                                <li>Certifique-se de que a data do agendamento seja futura.</li>
+                                <li>Clientes, colaboradores ou serviços com agendamentos não podem ser excluídos.</li>
+                                <li>Dados são salvos automaticamente.</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <style>
+            body.light .card {
+                background-color: #fff;
+                color: #333;
+                border-color: #ccc;
+            }
+
+            body.dark .card {
+                background-color: #2d3436;
+                color: #e0e0e0;
+                border-color: #444;
+            }
+
+            body.light .btn-outline-primary {
+                color: #007bff;
+                border-color: #007bff;
+            }
+
+            body.light .btn-outline-primary:hover {
+                background-color: #007bff;
+                color: #fff;
+            }
+
+            body.dark .btn-outline-primary {
+                color: #4dabf7;
+                border-color: #4dabf7;
+            }
+
+            body.dark .btn-outline-primary:hover {
+                background-color: #4dabf7;
+                color: #1c2526;
+            }
+        </style>
+        <script>
+            document.getElementById('toggle-guia').addEventListener('click', function () {
+                this.textContent = this.getAttribute('aria-expanded') === 'true' ? 'Esconder Guia de Uso' : 'Mostrar Guia de Uso';
+            });
+        </script>
+
+        <nav class="nav justify-content-center mb-4">
+            <a class="nav-link" href="#agendamento">Agendamento</a>
+            <a class="nav-link" href="#clientes">Clientes</a>
+            <a class="nav-link" href="#colaboradores">Colaboradores</a>
+            <a class="nav-link" href="#servicos">Serviços</a>
+        </nav>
+
+        <!-- Formulário de Clientes -->
+        <section id="clientes" class="mb-5">
+            <h2>Cadastro de Clientes</h2>
+            <div class="form-group">
+                <input type="text" id="nome" class="form-control mb-2" placeholder="Nome">
+                <input type="text" id="telefone" class="form-control mb-2" placeholder="Telefone">
+                <button id="add-cliente" class="btn btn-primary">Adicionar Cliente</button>
+            </div>
+            <ul id="lista-clientes" class="list-group mt-3"></ul>
+        </section>
+
+        <!-- Formulário de Colaboradores -->
+        <section id="colaboradores" class="mb-5">
+            <h2>Cadastro de Colaboradores</h2>
+            <div class="form-group">
+                <input type="text" id="nome-colaborador" class="form-control mb-2" placeholder="Nome">
+                <input type="text" id="especialidade" class="form-control mb-2"
+                    placeholder="Especialidade (ex.: Cabeleireiro)">
+                <select id="servicos-colaborador" class="form-select mb-2" multiple>
+                    <!-- Opções serão preenchidas via JavaScript -->
+                </select>
+                <button id="add-colaborador" class="btn btn-primary">Adicionar Colaborador</button>
+            </div>
+            <ul id="lista-colaboradores" class="list-group mt-3"></ul>
+        </section>
+
+        <!-- Formulário de Serviços -->
+        <section id="servicos" class="mb-5">
+            <h2>Cadastro de Serviços</h2>
+            <div class="form-group">
+                <input type="text" id="nome-servico" class="form-control mb-2" placeholder="Nome do Serviço">
+                <input type="number" id="valor-servico" class="form-control mb-2" placeholder="Valor (R$)" step="0.01">
+                <button id="add-servico" class="btn btn-primary">Adicionar Serviço</button>
+            </div>
+            <ul id="lista-servicos" class="list-group mt-3"></ul>
+        </section>
+
+        <!-- Formulário de Agendamentos -->
+        <section id="agendamento">
+            <h2>Agendamento</h2>
+            <div class="form-group">
+                <select id="cliente" class="form-select mb-2">
+                    <option value="">Selecione um cliente</option>
+                </select>
+                <select id="colaborador" class="form-select mb-2">
+                    <option value="">Selecione um colaborador</option>
+                </select>
+                <select id="servico" class="form-select mb-2">
+                    <option value="">Selecione um serviço</option>
+                </select>
+                <input type="text" id="valor-agendamento" class="form-control mb-2" readonly>
+                <input type="date" id="data" class="form-control mb-2">
+                <input type="time" id="hora" class="form-control mb-2">
+                <button id="add-agendamento" class="btn btn-primary">Agendar</button>
+            </div>
+            <ul id="lista-agendamentos" class="list-group mt-3"></ul>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
