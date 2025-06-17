@@ -1,4 +1,4 @@
-/* Tema Claro (padrão) */
+/* Estilos Gerais */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -6,27 +6,49 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
+.list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+/* Tema Claro (Padrão) */
 body.light {
   background-color: #f0f0f0;
   color: #333;
 }
 
-h1, h2 {
+body.light h1,
+body.light h2 {
   color: #333;
 }
 
-.nav-link {
+body.light .nav-link {
   color: #007bff;
+  transition: color 0.3s;
 }
 
-.nav-link:hover {
+body.light .nav-link:hover {
   color: #0056b3;
 }
 
-.list-group-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+body.light .card {
+  background-color: #fff;
+  color: #333;
+  border-color: #ccc;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+body.light .btn-outline-primary {
+  color: #007bff;
+  border-color: #007bff;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+body.light .btn-outline-primary:hover {
+  background-color: #007bff;
+  color: #fff;
 }
 
 /* Tema Escuro */
@@ -35,12 +57,14 @@ body.dark {
   color: #e0e0e0;
 }
 
-body.dark h1, body.dark h2 {
+body.dark h1,
+body.dark h2 {
   color: #e0e0e0;
 }
 
 body.dark .nav-link {
   color: #4dabf7;
+  transition: color 0.3s;
 }
 
 body.dark .nav-link:hover {
@@ -57,6 +81,7 @@ body.dark .form-control {
   background-color: #2d3436;
   color: #e0e0e0;
   border-color: #444;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
 body.dark .form-control::placeholder {
@@ -67,11 +92,13 @@ body.dark .form-select {
   background-color: #2d3436;
   color: #e0e0e0;
   border-color: #444;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
 body.dark .btn-primary {
   background-color: #4dabf7;
   border-color: #4dabf7;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 body.dark .btn-primary:hover {
@@ -82,6 +109,7 @@ body.dark .btn-primary:hover {
 body.dark .btn-warning {
   background-color: #e67e22;
   border-color: #e67e22;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 body.dark .btn-warning:hover {
@@ -92,9 +120,42 @@ body.dark .btn-warning:hover {
 body.dark .btn-danger {
   background-color: #e63946;
   border-color: #e63946;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 body.dark .btn-danger:hover {
   background-color: #c0392b;
   border-color: #c0392b;
+}
+
+body.dark .card {
+  background-color: #2d3436;
+  color: #e0e0e0;
+  border-color: #444;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+body.dark .btn-outline-primary {
+  color: #4dabf7;
+  border-color: #4dabf7;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+body.dark .btn-outline-primary:hover {
+  background-color: #4dabf7;
+  color: #1c2526;
+}
+
+/* Estilos de Acessibilidade */
+.form-control:focus,
+.form-select:focus,
+.btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+body.dark .form-control:focus,
+body.dark .form-select:focus,
+body.dark .btn:focus {
+  outline: 2px solid #4dabf7;
 }
