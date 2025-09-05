@@ -1,0 +1,336 @@
+# ===================================
+# DEPENDENCIES
+# ===================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ===================================
+# ENVIRONMENT VARIABLES
+# ===================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===================================
+# LOGS
+# ===================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ===================================
+# RUNTIME DATA
+# ===================================
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ===================================
+# COVERAGE DIRECTORY
+# ===================================
+lib-cov/
+coverage/
+*.lcov
+.nyc_output
+
+# ===================================
+# DEPENDENCY DIRECTORIES
+# ===================================
+node_modules/
+jspm_packages/
+
+# ===================================
+# TYPESCRIPT
+# ===================================
+*.tsbuildinfo
+
+# ===================================
+# OPTIONAL NPM CACHE
+# ===================================
+.npm
+.eslintcache
+
+# ===================================
+# OPTIONAL REPL HISTORY
+# ===================================
+.node_repl_history
+
+# ===================================
+# OUTPUT OF 'NPM PACK'
+# ===================================
+*.tgz
+
+# ===================================
+# YARN INTEGRITY FILE
+# ===================================
+.yarn-integrity
+
+# ===================================
+# EDITOR DIRECTORIES AND FILES
+# ===================================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ===================================
+# DATABASE
+# ===================================
+# Arquivos de backup do banco
+*.backup
+*.sql.bak
+database/backups/
+db_backups/
+
+# Arquivos de dump do PostgreSQL
+*.dump
+*.sql.gz
+
+# Arquivos de migração temporários
+migrations/temp/
+
+# ===================================
+# UPLOADS E CACHE
+# ===================================
+uploads/
+cache/
+tmp/
+temp/
+.tmp/
+.cache/
+
+# ===================================
+# ARQUIVOS DE CONFIGURAÇÃO LOCAL
+# ===================================
+config/local.js
+config/local.json
+config/production.js
+config/production.json
+
+# ===================================
+# CERTIFICADOS SSL
+# ===================================
+*.pem
+*.key
+*.crt
+*.cert
+ssl/
+
+# ===================================
+# ARQUIVOS DE SISTEMA
+# ===================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ===================================
+# ARQUIVOS DE BUILD
+# ===================================
+build/
+dist/
+out/
+public/build/
+
+# ===================================
+# DOCUMENTAÇÃO GERADA
+# ===================================
+docs/generated/
+api-docs/
+
+# ===================================
+# TESTES
+# ===================================
+coverage/
+.nyc_output/
+test-results/
+screenshots/
+
+# ===================================
+# DOCKER
+# ===================================
+.dockerignore
+docker-compose.override.yml
+
+# ===================================
+# ARQUIVOS ESPECÍFICOS DO PROJETO
+# ===================================
+# Dados de teste
+test-data/
+sample-data/
+
+# Logs específicos do StyleCut
+stylecut-*.log
+error-*.log
+
+# Arquivos de backup do localStorage
+localStorage-backup-*.json
+
+# ===================================
+# ARQUIVOS TEMPORÁRIOS DE DESENVOLVIMENTO
+# ===================================
+*.tmp
+*.temp
+.todo
+TODO.md
+NOTES.md
+
+# ===================================
+# ANÁLISE DE CÓDIGO
+# ===================================
+.sonarqube/
+sonar-project.properties
+
+# ===================================
+# GITHUB
+# ===================================
+.github/workflows/
+!.github/workflows/main.yml
+
+# ===================================
+# HEROKU
+# ===================================
+.env.production
+
+# ===================================
+# VERCEL
+# ===================================
+.vercel
+
+# ===================================
+# NETLIFY
+# ===================================
+.netlify/
+
+# ===================================
+# FIREBASE
+# ===================================
+.firebase/
+firebase-debug.log
+.firebaserc
+
+# ===================================
+# AWS
+# ===================================
+.aws/
+aws-exports.js
+
+# ===================================
+# APLICAÇÕES MÓVEIS
+# ===================================
+# React Native
+.expo/
+.expo-shared/
+
+# ===================================
+# ESPECÍFICO WINDOWS
+# ===================================
+*.lnk
+*.url
+
+# ===================================
+# ESPECÍFICO MAC
+# ===================================
+.AppleDouble
+.LSOverride
+Icon
+
+# ===================================
+# ESPECÍFICO LINUX
+# ===================================
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===================================
+# ARQUIVOS DE MONITORAMENTO
+# ===================================
+.pm2/
+ecosystem.config.js
+
+# ===================================
+# STORYBOOK
+# ===================================
+storybook-static/
+
+# ===================================
+# NEXT.JS
+# ===================================
+.next/
+out/
+
+# ===================================
+# NUXT.JS
+# ===================================
+.nuxt/
+dist/
+
+# ===================================
+# GATSBY
+# ===================================
+.cache/
+public/
+
+# ===================================
+# VUEPRESS
+# ===================================
+.vuepress/dist/
+
+# ===================================
+# SERVERLESS
+# ===================================
+.serverless/
+
+# ===================================
+# FUSEBOX
+# ===================================
+.fusebox/
+
+# ===================================
+# DYNAMODB LOCAL
+# ===================================
+.dynamodb/
+
+# ===================================
+# TERNJS PORT FILE
+# ===================================
+.tern-port
+
+# ===================================
+# STORES VSCode EXTENSION FOLDER
+# ===================================
+.vscode-test
+
+# ===================================
+# YARN V2
+# ===================================
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

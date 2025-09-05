@@ -11,307 +11,356 @@
   <meta name="keywords" content="agendamento, salão, beleza, style cut">
 </head>
 <body class="light fade-in">
-  <div class="container-fluid">
-    <header class="d-flex justify-content-between align-items-center">
-      <div class="container d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-scissors me-3" style="font-size: 2rem;"></i>
-          <h1 class="mb-0">Style Cut</h1>
-        </div>
-        <button id="toggle-theme" class="btn" aria-label="Alternar entre tema claro e escuro">
-          <i class="bi bi-moon-fill me-2"></i>
-          <span>Alternar Tema</span>
-        </button>
+  <!-- Header -->
+  <header class="header">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="logo">
+        <i class="bi bi-scissors"></i>
+        <span>Style Cut</span>
       </div>
-    </header>
-
-    <div class="container">
-      <!-- Guia de Uso Melhorado -->
-      <div class="mb-4">
-        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#guia-uso" aria-expanded="false" aria-controls="guia-uso" id="toggle-guia">
+      <div class="header-actions">
+        <button id="toggle-theme" class="btn btn-outline-secondary me-2">
+          <i class="bi bi-moon-fill me-2"></i>
+          <span>Tema Escuro</span>
+        </button>
+        <button id="toggle-guia" class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#guia-uso" aria-expanded="false" aria-controls="guia-uso">
           <i class="bi bi-question-circle me-2"></i>
           <span>Mostrar Guia de Uso</span>
         </button>
-        <div class="collapse" id="guia-uso">
-          <div class="card card-body mt-3">
-            <div class="row">
-              <div class="col-md-6">
-                <h3><i class="bi bi-book me-2"></i>Guia Rápido para Usar o Style Cut</h3>
-                <p class="lead">Bem-vindo ao sistema mais moderno de agendamento para salões!</p>
-                
-                <div class="accordion" id="guiaAccordion">
-                  <div class="accordion-item">
-                    <h2 class="accordion-header">
-                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#clientes-info">
-                        <i class="bi bi-people me-2"></i>Gerenciar Clientes
-                      </button>
-                    </h2>
-                    <div id="clientes-info" class="accordion-collapse collapse" data-bs-parent="#guiaAccordion">
-                      <div class="accordion-body">
-                        <strong>Cadastre e gerencie seus clientes:</strong>
-                        <ul>
-                          <li>Insira nome e telefone</li>
-                          <li>Clique em "Adicionar Cliente"</li>
-                          <li>Use os botões de editar/excluir na lista</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="accordion-item">
-                    <h2 class="accordion-header">
-                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#agendamento-info">
-                        <i class="bi bi-calendar-check me-2"></i>Fazer Agendamentos
-                      </button>
-                    </h2>
-                    <div id="agendamento-info" class="accordion-collapse collapse" data-bs-parent="#guiaAccordion">
-                      <div class="accordion-body">
-                        <strong>Agende serviços facilmente:</strong>
-                        <ul>
-                          <li>Selecione cliente, colaborador e serviço</li>
-                          <li>Escolha data e hora</li>
-                          <li>Valor é calculado automaticamente</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="col-md-6">
-                <div class="alert alert-info">
-                  <h5><i class="bi bi-lightbulb me-2"></i>Dicas Importantes</h5>
-                  <ul class="mb-0">
-                    <li>Dados são salvos automaticamente</li>
-                    <li>Use o tema escuro para reduzir o cansaço visual</li>
-                    <li>Clientes com agendamentos não podem ser excluídos</li>
-                    <li>Certifique-se de que a data seja futura</li>
-                  </ul>
-                </div>
-              </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Guia de Uso -->
+  <div class="collapse" id="guia-uso">
+    <div class="container mt-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-lightbulb me-2"></i>Guia Rápido de Uso</h5>
+          <div class="row">
+            <div class="col-md-3">
+              <h6><i class="bi bi-people"></i> Clientes</h6>
+              <p class="small">Cadastre clientes com nome e telefone. Use o botão de editar para alterar dados.</p>
+            </div>
+            <div class="col-md-3">
+              <h6><i class="bi bi-person-badge"></i> Colaboradores</h6>
+              <p class="small">Adicione profissionais e suas especialidades. Vincule serviços que cada um oferece.</p>
+            </div>
+            <div class="col-md-3">
+              <h6><i class="bi bi-scissors"></i> Serviços</h6>
+              <p class="small">Defina serviços e valores. Serviços podem ser oferecidos por múltiplos colaboradores.</p>
+            </div>
+            <div class="col-md-3">
+              <h6><i class="bi bi-calendar-check"></i> Agendamentos</h6>
+              <p class="small">Combine cliente, colaborador e serviço. O valor é calculado automaticamente.</p>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Navegação Melhorada -->
-      <nav class="nav justify-content-center mb-4" role="navigation">
-        <a class="nav-link active" href="#agendamento" data-section="agendamento">
-          <i class="bi bi-calendar-plus me-2"></i>Agendamento
-        </a>
-        <a class="nav-link" href="#clientes" data-section="clientes">
-          <i class="bi bi-people me-2"></i>Clientes
-        </a>
-        <a class="nav-link" href="#colaboradores" data-section="colaboradores">
-          <i class="bi bi-person-badge me-2"></i>Colaboradores
-        </a>
-        <a class="nav-link" href="#servicos" data-section="servicos">
-          <i class="bi bi-scissors me-2"></i>Serviços
-        </a>
-      </nav>
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <div class="container">
+      <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item">
+          <a class="nav-link active" data-section="agendamentos">
+            <i class="bi bi-calendar-plus"></i>
+            <span>Agendamentos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-section="clientes">
+            <i class="bi bi-people"></i>
+            <span>Clientes</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-section="colaboradores">
+            <i class="bi bi-person-badge"></i>
+            <span>Colaboradores</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-section="servicos">
+            <i class="bi bi-scissors"></i>
+            <span>Serviços</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
 
-      <!-- Seção de Agendamento -->
-      <section id="agendamento" class="active-section" role="region" aria-labelledby="agendamento-heading">
-        <div class="d-flex align-items-center mb-3">
-          <i class="bi bi-calendar-plus me-3" style="font-size: 2rem; color: #667eea;"></i>
-          <h2 id="agendamento-heading" class="mb-0">Novo Agendamento</h2>
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Seção Agendamentos -->
+      <section id="agendamentos" class="content-section active">
+        <div class="section-header">
+          <h2><i class="bi bi-calendar-plus me-2"></i>Novo Agendamento</h2>
+          <p class="text-muted">Agende serviços para seus clientes</p>
         </div>
-        
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="form-group">
+
+        <div class="form-container">
+          <form id="form-agendamento" class="row g-3">
+            <div class="col-md-6">
               <label for="cliente" class="form-label required">Cliente</label>
-              <select id="cliente" class="form-select mb-3" aria-label="Selecionar cliente" aria-required="true">
+              <select id="cliente" class="form-select" aria-label="Selecionar cliente" aria-required="true" required>
                 <option value="">Selecione um cliente</option>
               </select>
-              
+            </div>
+
+            <div class="col-md-6">
               <label for="colaborador" class="form-label required">Colaborador</label>
-              <select id="colaborador" class="form-select mb-3" aria-label="Selecionar colaborador" aria-required="true">
+              <select id="colaborador" class="form-select" aria-label="Selecionar colaborador" aria-required="true" required>
                 <option value="">Selecione um colaborador</option>
               </select>
-              
+            </div>
+
+            <div class="col-md-4">
               <label for="servico" class="form-label required">Serviço</label>
-              <select id="servico" class="form-select mb-3" aria-label="Selecionar serviço" aria-required="true">
+              <select id="servico" class="form-select" aria-label="Selecionar serviço" aria-required="true" required>
                 <option value="">Selecione um serviço</option>
               </select>
-              
-              <label for="valor-agendamento" class="form-label">Valor do Serviço</label>
-              <div class="input-group mb-3">
-                <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="data" class="form-label required">Data</label>
+              <input type="date" id="data" class="form-control" aria-required="true" required>
+            </div>
+
+            <div class="col-md-3">
+              <label for="hora" class="form-label required">Horário</label>
+              <input type="time" id="hora" class="form-control" min="08:00" max="17:30" step="1800" aria-required="true" required>
+            </div>
+
+            <div class="col-md-2">
+              <label for="valor-agendamento" class="form-label">Valor</label>
+              <div class="input-group">
+                <span class="input-group-text">R$</span>
                 <input type="text" id="valor-agendamento" class="form-control" readonly aria-label="Valor do agendamento">
               </div>
             </div>
-          </div>
-          
-          <div class="col-lg-6">
-            <div class="form-group">
-              <label for="data" class="form-label required">Data</label>
-              <input type="date" id="data" class="form-control mb-3" aria-required="true">
-              
-              <label for="hora" class="form-label required">Horário</label>
-              <input type="time" id="hora" class="form-control mb-3" aria-required="true">
-              
-              <button id="add-agendamento" class="btn btn-primary btn-lg w-100">
+
+            <div class="col-12">
+              <button type="submit" id="add-agendamento" class="btn btn-primary btn-lg">
                 <i class="bi bi-calendar-check me-2"></i>Confirmar Agendamento
               </button>
             </div>
-          </div>
+          </form>
         </div>
-        
-        <div class="mt-4">
-          <h4><i class="bi bi-list-ul me-2"></i>Agendamentos</h4>
-          <ul id="lista-agendamentos" class="list-group" aria-label="Lista de agendamentos"></ul>
+
+        <div class="list-container mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="bi bi-list-ul me-2"></i>Agendamentos do Dia</h4>
+            <input type="text" id="search-agendamentos" class="form-control w-25" placeholder="Buscar agendamentos...">
+          </div>
+          <ul id="lista-agendamentos" class="list-group">
+            <!-- Agendamentos serão inseridos aqui dinamicamente -->
+          </ul>
         </div>
       </section>
 
-      <!-- Seção de Clientes -->
-      <section id="clientes" class="d-none" role="region" aria-labelledby="clientes-heading">
-        <div class="d-flex align-items-center mb-3">
-          <i class="bi bi-people me-3" style="font-size: 2rem; color: #667eea;"></i>
-          <h2 id="clientes-heading" class="mb-0">Gestão de Clientes</h2>
+      <!-- Seção Clientes -->
+      <section id="clientes" class="content-section">
+        <div class="section-header">
+          <h2><i class="bi bi-people me-2"></i>Gerenciar Clientes</h2>
+          <p class="text-muted">Cadastre e gerencie seus clientes</p>
         </div>
-        
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="form-group">
+
+        <div class="form-container">
+          <form id="form-cliente" class="row g-3">
+            <div class="col-md-6">
               <label for="nome" class="form-label required">Nome do Cliente</label>
-              <div class="input-group mb-3">
+              <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-person"></i></span>
-                <input type="text" id="nome" class="form-control" placeholder="Digite o nome completo" aria-required="true">
+                <input type="text" id="nome" class="form-control" placeholder="Digite o nome completo" aria-required="true" required maxlength="255">
               </div>
-              
+            </div>
+
+            <div class="col-md-4">
               <label for="telefone" class="form-label required">Telefone</label>
-              <div class="input-group mb-3">
+              <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                <input type="tel" id="telefone" class="form-control" placeholder="(11) 99999-9999" aria-required="true">
+                <input type="tel" id="telefone" class="form-control" placeholder="(11) 99999-9999" aria-required="true" required maxlength="15">
               </div>
-              
-              <button id="add-cliente" class="btn btn-primary w-100">
-                <i class="bi bi-person-plus me-2"></i>Adicionar Cliente
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label">&nbsp;</label>
+              <button type="submit" id="add-cliente" class="btn btn-success w-100">
+                <i class="bi bi-person-plus me-2"></i>Adicionar
               </button>
             </div>
-          </div>
-          
-          <div class="col-lg-6">
-            <div class="alert alert-info">
-              <h5><i class="bi bi-info-circle me-2"></i>Como funciona?</h5>
-              <p class="mb-0">Cadastre seus clientes para poder fazer agendamentos. Os dados são salvos automaticamente e ficam disponíveis para futuros agendamentos.</p>
-            </div>
-          </div>
+          </form>
         </div>
-        
-        <div class="mt-4">
-          <h4><i class="bi bi-list-ul me-2"></i>Clientes Cadastrados</h4>
-          <ul id="lista-clientes" class="list-group" aria-label="Lista de clientes"></ul>
+
+        <div class="list-container mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="bi bi-list-ul me-2"></i>Lista de Clientes</h4>
+            <input type="text" id="search-clientes" class="form-control w-25" placeholder="Buscar clientes...">
+          </div>
+          <ul id="lista-clientes" class="list-group">
+            <!-- Clientes serão inseridos aqui dinamicamente -->
+          </ul>
         </div>
       </section>
 
-      <!-- Seção de Colaboradores -->
-      <section id="colaboradores" class="d-none" role="region" aria-labelledby="colaboradores-heading">
-        <div class="d-flex align-items-center mb-3">
-          <i class="bi bi-person-badge me-3" style="font-size: 2rem; color: #667eea;"></i>
-          <h2 id="colaboradores-heading" class="mb-0">Gestão de Colaboradores</h2>
+      <!-- Seção Colaboradores -->
+      <section id="colaboradores" class="content-section">
+        <div class="section-header">
+          <h2><i class="bi bi-person-badge me-2"></i>Gerenciar Colaboradores</h2>
+          <p class="text-muted">Cadastre profissionais e suas especialidades</p>
         </div>
-        
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="form-group">
+
+        <div class="form-container">
+          <form id="form-colaborador" class="row g-3">
+            <div class="col-md-4">
               <label for="nome-colaborador" class="form-label required">Nome do Colaborador</label>
-              <div class="input-group mb-3">
+              <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                <input type="text" id="nome-colaborador" class="form-control" placeholder="Digite o nome completo" aria-required="true">
+                <input type="text" id="nome-colaborador" class="form-control" placeholder="Digite o nome completo" aria-required="true" required maxlength="255">
               </div>
-              
+            </div>
+
+            <div class="col-md-4">
               <label for="especialidade" class="form-label required">Especialidade</label>
-              <div class="input-group mb-3">
+              <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-award"></i></span>
-                <input type="text" id="especialidade" class="form-control" placeholder="ex.: Cabeleireiro, Manicure, Esteticista" aria-required="true">
+                <input type="text" id="especialidade" class="form-control" placeholder="ex.: Cabeleireiro, Manicure" aria-required="true" required maxlength="100">
               </div>
-              
+            </div>
+
+            <div class="col-md-4">
+              <label for="telefone-colaborador" class="form-label">Telefone</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                <input type="tel" id="telefone-colaborador" class="form-control" placeholder="(11) 99999-9999" maxlength="15">
+              </div>
+            </div>
+
+            <div class="col-md-10">
               <label for="servicos-colaborador" class="form-label">Serviços que Oferece</label>
-              <select id="servicos-colaborador" class="form-select mb-3" multiple aria-label="Selecionar serviços do colaborador">
+              <select id="servicos-colaborador" class="form-select" multiple aria-label="Selecionar serviços do colaborador" size="3">
+                <!-- Serviços serão inseridos aqui dinamicamente -->
               </select>
-              <small class="form-text text-muted">Mantenha Ctrl pressionado para selecionar múltiplos serviços</small>
-              
-              <button id="add-colaborador" class="btn btn-primary w-100 mt-3">
-                <i class="bi bi-person-plus me-2"></i>Adicionar Colaborador
+              <div class="form-text">Segure Ctrl para selecionar múltiplos serviços</div>
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label">&nbsp;</label>
+              <button type="submit" id="add-colaborador" class="btn btn-success w-100">
+                <i class="bi bi-person-plus me-2"></i>Adicionar
               </button>
             </div>
-          </div>
-          
-          <div class="col-lg-6">
-            <div class="alert alert-warning">
-              <h5><i class="bi bi-exclamation-triangle me-2"></i>Importante</h5>
-              <p class="mb-0">Cadastre primeiro os serviços na seção "Serviços" para poder associá-los aos colaboradores.</p>
-            </div>
-          </div>
+          </form>
         </div>
-        
-        <div class="mt-4">
-          <h4><i class="bi bi-list-ul me-2"></i>Colaboradores Cadastrados</h4>
-          <ul id="lista-colaboradores" class="list-group" aria-label="Lista de colaboradores"></ul>
+
+        <div class="list-container mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="bi bi-list-ul me-2"></i>Lista de Colaboradores</h4>
+            <input type="text" id="search-colaboradores" class="form-control w-25" placeholder="Buscar colaboradores...">
+          </div>
+          <ul id="lista-colaboradores" class="list-group">
+            <!-- Colaboradores serão inseridos aqui dinamicamente -->
+          </ul>
         </div>
       </section>
 
-      <!-- Seção de Serviços -->
-      <section id="servicos" class="d-none" role="region" aria-labelledby="servicos-heading">
-        <div class="d-flex align-items-center mb-3">
-          <i class="bi bi-scissors me-3" style="font-size: 2rem; color: #667eea;"></i>
-          <h2 id="servicos-heading" class="mb-0">Gestão de Serviços</h2>
+      <!-- Seção Serviços -->
+      <section id="servicos" class="content-section">
+        <div class="section-header">
+          <h2><i class="bi bi-scissors me-2"></i>Gerenciar Serviços</h2>
+          <p class="text-muted">Defina os serviços oferecidos e seus valores</p>
         </div>
-        
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="form-group">
+
+        <div class="form-container">
+          <form id="form-servico" class="row g-3">
+            <div class="col-md-5">
               <label for="nome-servico" class="form-label required">Nome do Serviço</label>
-              <div class="input-group mb-3">
+              <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-scissors"></i></span>
-                <input type="text" id="nome-servico" class="form-control" placeholder="ex.: Corte Feminino, Manicure" aria-required="true">
+                <input type="text" id="nome-servico" class="form-control" placeholder="ex.: Corte Feminino, Manicure" aria-required="true" required maxlength="255">
               </div>
-              
+            </div>
+
+            <div class="col-md-3">
               <label for="valor-servico" class="form-label required">Valor (R$)</label>
-              <div class="input-group mb-3">
-                <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
-                <input type="number" id="valor-servico" class="form-control" placeholder="0,00" step="0.01" min="0" aria-required="true">
+              <div class="input-group">
+                <span class="input-group-text">R$</span>
+                <input type="number" id="valor-servico" class="form-control" placeholder="0,00" step="0.01" min="0" max="9999.99" aria-required="true" required>
               </div>
-              
-              <button id="add-servico" class="btn btn-primary w-100">
-                <i class="bi bi-plus-circle me-2"></i>Adicionar Serviço
+            </div>
+
+            <div class="col-md-2">
+              <label for="duracao-servico" class="form-label">Duração (min)</label>
+              <input type="number" id="duracao-servico" class="form-control" placeholder="60" min="15" max="480" step="15" value="60">
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label">&nbsp;</label>
+              <button type="submit" id="add-servico" class="btn btn-success w-100">
+                <i class="bi bi-plus-circle me-2"></i>Adicionar
               </button>
             </div>
-          </div>
-          
-          <div class="col-lg-6">
-            <div class="alert alert-success">
-              <h5><i class="bi bi-check-circle me-2"></i>Dica</h5>
-              <p class="mb-0">Cadastre todos os serviços oferecidos pelo seu salão. Eles aparecerão automaticamente nas opções de agendamento.</p>
-            </div>
-          </div>
+          </form>
         </div>
-        
-        <div class="mt-4">
-          <h4><i class="bi bi-list-ul me-2"></i>Serviços Cadastrados</h4>
-          <ul id="lista-servicos" class="list-group" aria-label="Lista de serviços"></ul>
+
+        <div class="list-container mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="bi bi-list-ul me-2"></i>Lista de Serviços</h4>
+            <input type="text" id="search-servicos" class="form-control w-25" placeholder="Buscar serviços...">
+          </div>
+          <ul id="lista-servicos" class="list-group">
+            <!-- Serviços serão inseridos aqui dinamicamente -->
+          </ul>
         </div>
       </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer mt-5">
+    <div class="container text-center">
+      <div class="row">
+        <div class="col-md-4">
+          <button id="backup-btn" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-download me-2"></i>Fazer Backup
+          </button>
+        </div>
+        <div class="col-md-4">
+          <span class="text-muted">© 2024 Style Cut - Sistema de Agendamento</span>
+        </div>
+        <div class="col-md-4">
+          <input type="file" id="restore-input" accept=".json" style="display: none;">
+          <button id="restore-btn" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-upload me-2"></i>Restaurar Backup
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Notification Container -->
+  <div id="notification-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    <!-- Notificações serão inseridas aqui dinamicamente -->
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-3">Carregando...</p>
     </div>
   </div>
 
-  <!-- Toast Container para notificações -->
-  <div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="notification-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header">
-        <i class="bi bi-check-circle-fill text-success me-2"></i>
-        <strong class="me-auto">Style Cut</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        Operação realizada com sucesso!
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="./src/app.js"></script>
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script type="module" src="./src/app.js"></script>
 </body>
 </html>

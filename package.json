@@ -1,0 +1,29 @@
+{
+  "name": "stylecut",
+  "version": "1.0.0",
+  "description": "Sistema de Agendamento para Salão de Beleza",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "setup-db": "node database/setup.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.21.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.9"
+  },
+  "keywords": [
+    "agendamento",
+    "salao",
+    "beleza",
+    "postgresql"
+  ],
+  "author": "Hernandes",
+  "license": "MIT"
+}
