@@ -297,6 +297,28 @@ export class Database {
         )
       `);
 
+      // Inserir dados de exemplo no SQLite se não existirem
+      const serviceCount = await this.sqliteGet('SELECT COUNT(*) as count FROM services');
+      if (serviceCount.count === 0) {
+        console.log('📝 Inserindo dados de exemplo no SQLite...');
+        const services = [
+          { id: '1', name: 'Corte Masculino', price: 25.00, duration: 30 },
+          { id: '2', name: 'Corte Feminino', price: 45.00, duration: 60 },
+          { id: '3', name: 'Barba', price: 15.00, duration: 20 },
+          { id: '4', name: 'Manicure', price: 20.00, duration: 45 },
+          { id: '5', name: 'Pedicure', price: 25.00, duration: 60 },
+          { id: '6', name: 'Escova', price: 30.00, duration: 45 },
+          { id: '7', name: 'Hidratação', price: 35.00, duration: 60 }
+        ];
+        
+        for (const service of services) {
+          await this.sqliteRun(
+            'INSERT INTO services (id, name, price, duration) VALUES (?, ?, ?, ?)',
+            [service.id, service.name, service.price, service.duration]
+          );
+        }
+      }
+
       if (!this.isPostgresConnected) {
         console.log('✅ Tabelas SQLite criadas/verificadas com sucesso');
       }
@@ -306,10 +328,24 @@ export class Database {
     }
   }
 
+  // Método helper para converter SQL do SQLite para PostgreSQL
+  convertSqlForPostgres(sql, params = []) {
+    if (!this.isPostgresConnected) {
+      return { sql, params };
+    }
+    
+    // Converter ? para $1, $2, etc.
+    let paramIndex = 1;
+    const pgSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
+    
+    return { sql: pgSql, params };
+  }
+
   // Métodos universais que escolhem automaticamente o banco correto
   async query(sql, params = []) {
     if (this.isPostgresConnected && this.usePostgres) {
-      return await this.pgQuery(sql, params);
+      const { sql: pgSql, params: pgParams } = this.convertSqlForPostgres(sql, params);
+      return await this.pgQuery(pgSql, pgParams);
     } else {
       return await this.sqliteQuery(sql, params);
     }
@@ -317,7 +353,8 @@ export class Database {
 
   async get(sql, params = []) {
     if (this.isPostgresConnected && this.usePostgres) {
-      const result = await this.pgQuery(sql, params);
+      const { sql: pgSql, params: pgParams } = this.convertSqlForPostgres(sql, params);
+      const result = await this.pgQuery(pgSql, pgParams);
       return result.rows[0] || null;
     } else {
       return await this.sqliteGet(sql, params);
@@ -326,7 +363,8 @@ export class Database {
 
   async all(sql, params = []) {
     if (this.isPostgresConnected && this.usePostgres) {
-      const result = await this.pgQuery(sql, params);
+      const { sql: pgSql, params: pgParams } = this.convertSqlForPostgres(sql, params);
+      const result = await this.pgQuery(pgSql, pgParams);
       return result.rows;
     } else {
       return await this.sqliteAll(sql, params);
@@ -335,7 +373,8 @@ export class Database {
 
   async run(sql, params = []) {
     if (this.isPostgresConnected && this.usePostgres) {
-      const result = await this.pgQuery(sql, params);
+      const { sql: pgSql, params: pgParams } = this.convertSqlForPostgres(sql, params);
+      const result = await this.pgQuery(pgSql, pgParams);
       return result;
     } else {
       return await this.sqliteRun(sql, params);

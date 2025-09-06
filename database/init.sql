@@ -91,6 +91,7 @@ CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone);
 CREATE INDEX IF NOT EXISTS idx_professionals_phone ON professionals(phone);
 CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date);
 CREATE INDEX IF NOT EXISTS idx_appointments_professional_date ON appointments(professional_id, date);
+CREATE INDEX IF NOT EXISTS idx_appointments_datetime ON appointments(date, time);
 
 -- Dados de exemplo (opcional)
 INSERT INTO services (name, price, duration) VALUES 
@@ -98,7 +99,9 @@ INSERT INTO services (name, price, duration) VALUES
   ('Corte Feminino', 45.00, 60),
   ('Barba', 15.00, 20),
   ('Manicure', 20.00, 45),
-  ('Pedicure', 25.00, 60)
+  ('Pedicure', 25.00, 60),
+  ('Escova', 30.00, 45),
+  ('Hidratação', 35.00, 60)
 ON CONFLICT DO NOTHING;
 
 -- Mostrar status das tabelas criadas

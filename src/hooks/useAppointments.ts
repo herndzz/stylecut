@@ -1,113 +1,86 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import axios from 'axios';
 import { Appointment } from '../types';
 import { offlineService } from '../services/offlineService';
-import axios, { AxiosError } from 'axios';
 
-// Tipo para o retorno da função
-interface UseAppointmentsReturn {
-  appointments: Appointment[];
-  isLoading: boolean;
-  addAppointment: (data: AppointmentInput) => Promise<Appointment>;
-  updateAppointment: (id: string, data: AppointmentInput) => Promise<void>;
-  deleteAppointment: (id: string) => Promise<void>;
-  isAdding: boolean;
-  error: Error | null;
-  isError: boolean;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// Tipo para os dados de entrada de um novo agendamento
-type AppointmentInput = Omit<Appointment, 'id' | 'status' | 'createdAt' | 'updatedAt'>;
-
-export const useAppointments = (): UseAppointmentsReturn => {
+export const useAppointments = () => {
   const queryClient = useQueryClient();
 
-  const appointmentsQuery = useQuery<Appointment[], Error>('appointments', async () => {
-    try {
-      const response = await axios.get('/api/appointments');
-      return response.data;
-    } catch (error) {
-      if ((error as AxiosError).response?.status === 404) {
-        console.warn("Endpoint '/api/appointments' não encontrado. Usando fallback offline.");
-      } else {
-        console.error("Erro ao carregar agendamentos:", error);
-      }
-      return offlineService.getAppointments();
-    }
-  });
-
-  const addAppointmentMutation = useMutation<
-    Appointment,
-    Error,
-    AppointmentInput
-  >(
-    async (appointmentData) => {
+  const { data: appointments, isLoading, error } = useQuery<Appointment[]>(
+    'appointments',
+    async () => {
       try {
-        const response = await axios.post('/api/appointments', appointmentData);
+        const response = await axios.get(`${API_URL}/api/appointments`);
         return response.data;
       } catch (error) {
-        if ((error as AxiosError).isAxiosError) {
-          // Se for um erro do Axios, tentamos salvar offline e notificamos
-          const result = await offlineService.addAppointment(appointmentData);
-          console.log('Agendamento salvo offline');
-          return result;
-        }
-        throw error; // Se for outro tipo de erro, propagamos
+        console.log("Endpoint '/api/appointments' não encontrado. Usando fallback offline.");
+        return offlineService.getAppointments();
       }
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('appointments');
-      },
-      onError: (error) => {
-        const errorMessage = error instanceof AxiosError 
-          ? error.response?.data?.message || 'Erro ao criar agendamento'
-          : 'Erro ao criar agendamento';
-        console.error(errorMessage);
-      },
     }
   );
 
-  const updateAppointmentMutation = useMutation<void, Error, { id: string; data: AppointmentInput }>(
-    async ({ id, data }) => {
-      await axios.put(`/api/appointments/${id}`, data);
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('appointments');
-      },
-    }
-  );
-
-  const deleteAppointmentMutation = useMutation<void, Error, string>(
-    async (id) => {
+  const addAppointmentMutation = useMutation(
+    async (appointmentData: Omit<Appointment, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
       try {
-        await axios.delete(`/api/appointments/${id}`);
+        const response = await axios.post(`${API_URL}/api/appointments`, appointmentData);
+        return response.data;
       } catch (error) {
-        if ((error as AxiosError).response?.status === 404) {
-          console.warn(`Agendamento com ID ${id} não encontrado no servidor. Removendo localmente.`);
-        } else {
-          throw error;
-        }
+        console.log("Agendamento salvo offline");
+        return await offlineService.addAppointment(appointmentData);
       }
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('appointments');
       },
-      onError: (error) => {
-        console.error("Erro ao excluir agendamento:", error);
+    }
+  );
+
+  const updateAppointmentMutation = useMutation(
+    async ({ id, data }: { id: string; data: Partial<Appointment> }) => {
+      try {
+        const response = await axios.put(`${API_URL}/api/appointments/${id}`, data);
+        return response.data;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Falha ao atualizar agendamento');
+      }
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('appointments');
+      },
+    }
+  );
+
+  const deleteAppointmentMutation = useMutation(
+    async (id: string) => {
+      try {
+        await axios.delete(`${API_URL}/api/appointments/${id}`);
+      } catch (error) {
+        console.log(`Agendamento com ID ${id} não encontrado no servidor. Removendo localmente.`);
+        // Remove localmente se não encontrar no servidor
+        const appointments = offlineService.getAppointments();
+        const updatedAppointments = appointments.filter(apt => apt.id !== id);
+        localStorage.setItem('stylecut_appointments', JSON.stringify(updatedAppointments));
+      }
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('appointments');
       },
     }
   );
 
   return {
-    appointments: appointmentsQuery.data || [],
-    isLoading: appointmentsQuery.isLoading,
+    appointments,
+    isLoading,
+    error,
     addAppointment: addAppointmentMutation.mutateAsync,
-    updateAppointment: async (id, data) => updateAppointmentMutation.mutateAsync({ id, data }),
-    deleteAppointment: async (id) => deleteAppointmentMutation.mutateAsync(id),
+    updateAppointment: (id: string, data: Partial<Appointment>) => updateAppointmentMutation.mutateAsync({ id, data }),
+    deleteAppointment: deleteAppointmentMutation.mutateAsync,
     isAdding: addAppointmentMutation.isLoading,
-    error: appointmentsQuery.error || addAppointmentMutation.error,
-    isError: appointmentsQuery.isError || addAppointmentMutation.isError,
   };
 };

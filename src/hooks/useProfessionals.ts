@@ -1,72 +1,51 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import axios from 'axios';
 import { Professional } from '../types';
 import { offlineService } from '../services/offlineService';
-import axios, { AxiosError } from 'axios';
 
-// Tipo para o retorno da função
-interface UseProfessionalsReturn {
-  professionals: Professional[];
-  isLoading: boolean;
-  addProfessional: (data: ProfessionalInput) => void;
-  updateProfessional: (id: string, data: ProfessionalInput) => void;
-  deleteProfessional: (id: string) => void;
-  isAdding: boolean;
-  error: Error | null;
-  isError: boolean;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// Tipo para os dados de entrada de um novo profissional
-type ProfessionalInput = Omit<Professional, 'id' | 'createdAt' | 'updatedAt'>;
-
-export const useProfessionals = (): UseProfessionalsReturn => {
+export const useProfessionals = () => {
   const queryClient = useQueryClient();
 
-  const professionalsQuery = useQuery<Professional[], Error>('professionals', async () => {
-    try {
-      const response = await axios.get('/api/professionals');
-      return response.data;
-    } catch (error) {
-      console.log('Falha na comunicação com o servidor, usando dados offline');
-      // Usa serviço offline apenas em caso de erro de rede
-      return offlineService.getProfessionals();
-    }
-  });
-
-  const addProfessionalMutation = useMutation<
-    Professional,
-    Error,
-    ProfessionalInput
-  >(
-    async (professionalData) => {
+  const { data: professionals, isLoading, error } = useQuery<Professional[]>(
+    'professionals',
+    async () => {
       try {
-        const response = await axios.post('/api/professionals', professionalData);
+        const response = await axios.get(`${API_URL}/api/professionals`);
         return response.data;
       } catch (error) {
-        if ((error as AxiosError).isAxiosError) {
-          // Se for um erro do Axios, tentamos salvar offline e notificamos
-          const result = await offlineService.addProfessional(professionalData);
-          console.log('Profissional salvo offline');
-          return result;
-        }
-        throw error; // Se for outro tipo de erro, propagamos
+        console.log('Falha na comunicação com o servidor, usando dados offline');
+        return offlineService.getProfessionals();
+      }
+    }
+  );
+
+  const addProfessionalMutation = useMutation(
+    async (professionalData: Omit<Professional, 'id' | 'createdAt' | 'updatedAt'>) => {
+      try {
+        const response = await axios.post(`${API_URL}/api/professionals`, professionalData);
+        return response.data;
+      } catch (error) {
+        console.log('Profissional salvo offline');
+        return await offlineService.addProfessional(professionalData);
       }
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('professionals');
       },
-      onError: (error) => {
-        const errorMessage = error instanceof AxiosError 
-          ? error.response?.data?.message || 'Erro ao criar profissional'
-          : 'Erro ao criar profissional';
-        console.error(errorMessage);
-      },
     }
   );
 
-  const updateProfessionalMutation = useMutation<void, Error, { id: string; data: ProfessionalInput }>(
-    async ({ id, data }) => {
-      await axios.put(`/api/professionals/${id}`, data);
+  const updateProfessionalMutation = useMutation(
+    async ({ id, data }: { id: string; data: Partial<Professional> }) => {
+      try {
+        const response = await axios.put(`${API_URL}/api/professionals/${id}`, data);
+        return response.data;
+      } catch (error) {
+        throw new Error('Falha ao atualizar profissional');
+      }
     },
     {
       onSuccess: () => {
@@ -75,9 +54,13 @@ export const useProfessionals = (): UseProfessionalsReturn => {
     }
   );
 
-  const deleteProfessionalMutation = useMutation<void, Error, string>(
-    async (id) => {
-      await axios.delete(`/api/professionals/${id}`);
+  const deleteProfessionalMutation = useMutation(
+    async (id: string) => {
+      try {
+        await axios.delete(`${API_URL}/api/professionals/${id}`);
+      } catch (error) {
+        throw new Error('Falha ao excluir profissional');
+      }
     },
     {
       onSuccess: () => {
@@ -87,13 +70,12 @@ export const useProfessionals = (): UseProfessionalsReturn => {
   );
 
   return {
-    professionals: professionalsQuery.data || [],
-    isLoading: professionalsQuery.isLoading,
+    professionals,
+    isLoading,
+    error,
     addProfessional: addProfessionalMutation.mutate,
-    updateProfessional: (id, data) => updateProfessionalMutation.mutate({ id, data }),
-    deleteProfessional: (id) => deleteProfessionalMutation.mutate(id),
+    updateProfessional: (id: string, data: Partial<Professional>) => updateProfessionalMutation.mutate({ id, data }),
+    deleteProfessional: deleteProfessionalMutation.mutate,
     isAdding: addProfessionalMutation.isLoading,
-    error: professionalsQuery.error || addProfessionalMutation.error,
-    isError: professionalsQuery.isError || addProfessionalMutation.isError,
   };
 };

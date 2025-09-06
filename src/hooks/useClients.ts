@@ -1,124 +1,90 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import axios from 'axios';
 import { Client } from '../types';
 import { offlineService } from '../services/offlineService';
-import axios, { AxiosError } from 'axios';
 
-// Tipo para o retorno da função
-interface UseClientsReturn {
-  clients: Client[];
-  isLoading: boolean;
-  addClient: (data: ClientInput) => void;
-  updateClient: (id: string, data: ClientInput) => void;
-  deleteClient: (id: string) => void;
-  searchByPhone: (phone: string) => Promise<Client | undefined>;
-  isAdding: boolean;
-  error: Error | null;
-  isError: boolean;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// Tipo para os dados de entrada de um novo cliente
-type ClientInput = Omit<Client, 'id' | 'createdAt' | 'updatedAt'>;
-
-export const useClients = (): UseClientsReturn => {
+export const useClients = () => {
   const queryClient = useQueryClient();
 
-  const clientsQuery = useQuery<Client[], Error>('clients', async () => {
+  const { data: clients, isLoading, error } = useQuery<Client[]>('clients', async () => {
     try {
-      const response = await axios.get('/api/clients');
+      const response = await axios.get(`${API_URL}/api/clients`);
       return response.data;
     } catch (error) {
-      if ((error as AxiosError).response?.status === 404) {
-        console.warn("Endpoint '/api/clients' não encontrado. Usando fallback offline.");
-      } else {
-        console.error("Erro ao carregar clientes:", error);
-      }
+      console.log("Endpoint '/api/clients' não encontrado. Usando fallback offline.");
       return offlineService.getClients();
     }
   });
 
-  const addClientMutation = useMutation<
-    Client,
-    Error,
-    ClientInput
-  >(
-    async (clientData) => {
+  const addClientMutation = useMutation(
+    async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
       try {
-        const response = await axios.post('/api/clients', clientData);
+        const response = await axios.post(`${API_URL}/api/clients`, clientData);
         return response.data;
       } catch (error) {
-        if ((error as AxiosError).isAxiosError) {
-          // Se for um erro do Axios, tentamos salvar offline e notificamos
-          const result = await offlineService.addClient(clientData);
-          console.log('Cliente salvo offline');
-          return result;
-        }
-        throw error; // Se for outro tipo de erro, propagamos
+        console.log("Cliente salvo offline");
+        return await offlineService.addClient(clientData);
       }
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('clients');
       },
-      onError: (error) => {
-        const errorMessage = error instanceof AxiosError 
-          ? error.response?.data?.message || 'Erro ao criar cliente'
-          : 'Erro ao criar cliente';
-        console.error(errorMessage);
-      },
     }
   );
 
-  const updateClientMutation = useMutation<void, Error, { id: string; data: ClientInput }>(
-    async ({ id, data }) => {
-      await axios.put(`/api/clients/${id}`, data);
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('clients');
-      },
-    }
-  );
-
-  const deleteClientMutation = useMutation<void, Error, string>(
-    async (id) => {
+  const updateClientMutation = useMutation(
+    async ({ id, data }: { id: string; data: Partial<Client> }) => {
       try {
-        await axios.delete(`/api/clients/${id}`);
+        const response = await axios.put(`${API_URL}/api/clients/${id}`, data);
+        return response.data;
       } catch (error) {
-        if ((error as AxiosError).response?.status === 404) {
-          console.warn(`Cliente com ID ${id} não encontrado no servidor. Removendo localmente.`);
-        } else {
-          throw error;
-        }
+        throw new Error('Falha ao atualizar cliente');
       }
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('clients');
       },
-      onError: (error) => {
-        console.error("Erro ao excluir cliente:", error);
+    }
+  );
+
+  const deleteClientMutation = useMutation(
+    async (id: string) => {
+      try {
+        await axios.delete(`${API_URL}/api/clients/${id}`);
+      } catch (error) {
+        throw new Error('Falha ao excluir cliente');
+      }
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('clients');
       },
     }
   );
 
   const searchByPhone = async (phone: string): Promise<Client | undefined> => {
     try {
-      return await offlineService.searchClientByPhone(phone);
+      // Corrigir endpoint - usar o endpoint correto do backend
+      const response = await axios.get(`${API_URL}/api/clients/search/phone/${phone}`);
+      return response.data;
     } catch (error) {
-      console.error('Erro ao buscar cliente por telefone:', error);
-      return undefined;
+      console.log('Buscando cliente offline...');
+      return offlineService.searchClientByPhone(phone);
     }
   };
 
   return {
-    clients: clientsQuery.data || [],
-    isLoading: clientsQuery.isLoading,
+    clients,
+    isLoading,
+    error,
     addClient: addClientMutation.mutate,
-    updateClient: (id, data) => updateClientMutation.mutate({ id, data }),
-    deleteClient: (id) => deleteClientMutation.mutate(id),
+    updateClient: (id: string, data: Partial<Client>) => updateClientMutation.mutate({ id, data }),
+    deleteClient: deleteClientMutation.mutate,
     searchByPhone,
     isAdding: addClientMutation.isLoading,
-    error: clientsQuery.error || addClientMutation.error,
-    isError: clientsQuery.isError || addClientMutation.isError,
   };
 };

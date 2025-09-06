@@ -6,13 +6,29 @@ const router = express.Router();
 // GET /api/professionals - Listar todos os profissionais
 router.get('/', async (req, res) => {
   try {
-    const professionals = await req.db.all(`
-      SELECT p.*, GROUP_CONCAT(ps.service_id) as service_ids
-      FROM professionals p
-      LEFT JOIN professional_services ps ON p.id = ps.professional_id
-      GROUP BY p.id
-      ORDER BY p.name
-    `);
+    let query, professionals;
+    
+    if (req.db.currentDatabase === 'PostgreSQL') {
+      // PostgreSQL usa string_agg ao invés de GROUP_CONCAT
+      query = `
+        SELECT p.*, string_agg(ps.service_id::text, ',') as service_ids
+        FROM professionals p
+        LEFT JOIN professional_services ps ON p.id = ps.professional_id
+        GROUP BY p.id, p.name, p.phone, p.email, p.created_at, p.updated_at
+        ORDER BY p.name
+      `;
+    } else {
+      // SQLite usa GROUP_CONCAT
+      query = `
+        SELECT p.*, GROUP_CONCAT(ps.service_id) as service_ids
+        FROM professionals p
+        LEFT JOIN professional_services ps ON p.id = ps.professional_id
+        GROUP BY p.id
+        ORDER BY p.name
+      `;
+    }
+    
+    professionals = await req.db.all(query);
     
     // Transformar service_ids em array
     const result = professionals.map(prof => ({
@@ -73,8 +89,8 @@ router.post('/', async (req, res) => {
     
     // Verificar se todos os serviços existem
     for (const serviceId of services) {
-      const serviceExists = await req.db.get('SELECT id FROM services WHERE id = ?', [serviceId]);
-      if (!serviceExists) {
+      const service = await req.db.get('SELECT id FROM services WHERE id = ?', [serviceId]);
+      if (!service) {
         return res.status(400).json({ error: `Serviço com ID ${serviceId} não encontrado` });
       }
     }
@@ -121,15 +137,15 @@ router.put('/:id', async (req, res) => {
     if (phone && phone !== existingProfessional.phone) {
       const phoneExists = await req.db.get('SELECT id FROM professionals WHERE phone = ? AND id != ?', [phone, id]);
       if (phoneExists) {
-        return res.status(409).json({ error: 'Já existe um profissional com este telefone' });
+        return res.status(409).json({ error: 'Já existe outro profissional com este telefone' });
       }
     }
     
     // Se serviços foram fornecidos, verificar se existem
     if (services && Array.isArray(services)) {
       for (const serviceId of services) {
-        const serviceExists = await req.db.get('SELECT id FROM services WHERE id = ?', [serviceId]);
-        if (!serviceExists) {
+        const service = await req.db.get('SELECT id FROM services WHERE id = ?', [serviceId]);
+        if (!service) {
           return res.status(400).json({ error: `Serviço com ID ${serviceId} não encontrado` });
         }
       }
@@ -148,7 +164,7 @@ router.put('/:id', async (req, res) => {
     
     // Se serviços foram fornecidos, atualizar relações
     if (services && Array.isArray(services)) {
-      // Remover relações existentes
+      // Remover todas as relações existentes
       await req.db.run('DELETE FROM professional_services WHERE professional_id = ?', [id]);
       
       // Inserir novas relações
@@ -161,6 +177,8 @@ router.put('/:id', async (req, res) => {
     }
     
     const updatedProfessional = await req.db.get('SELECT * FROM professionals WHERE id = ?', [id]);
+    
+    // Buscar serviços atualizados
     const professionalServices = await req.db.all(
       'SELECT service_id FROM professional_services WHERE professional_id = ?',
       [id]
@@ -188,15 +206,15 @@ router.delete('/:id', async (req, res) => {
     // Verificar se profissional tem agendamentos
     const appointments = await req.db.get('SELECT COUNT(*) as count FROM appointments WHERE professional_id = ?', [id]);
     if (appointments.count > 0) {
-      return res.status(409).json({ 
-        error: 'Não é possível excluir profissional com agendamentos existentes' 
+      return res.status(400).json({ 
+        error: 'Não é possível excluir profissional com agendamentos cadastrados' 
       });
     }
     
-    // Remover relações com serviços
+    // Deletar relações com serviços (cascade irá cuidar disso se bem configurado)
     await req.db.run('DELETE FROM professional_services WHERE professional_id = ?', [id]);
     
-    // Remover profissional
+    // Deletar profissional
     await req.db.run('DELETE FROM professionals WHERE id = ?', [id]);
     
     res.status(204).send();

@@ -1,137 +1,179 @@
-# Configuração do Banco de Dados StyleCut
+# Configuração do Banco de Dados - StyleCut
 
-## PostgreSQL (Banco Principal)
+## PostgreSQL (Produção/Desenvolvimento)
 
-### Configurações Atuais
-```
-Host: localhost
-Porta: 5433
-Database: stylecut_db
-Usuário: postgres
-Senha: stylecut123
-```
+### Pré-requisitos
+- PostgreSQL 13+ instalado
+- Porta 5433 disponível (configurável)
 
-### 1. Verificação da Conexão
-```bash
-# Testar conexão
-psql -h localhost -p 5433 -U postgres -d stylecut_db
+### Configuração Inicial
 
-# Ou usando a URL completa
-psql postgresql://postgres:stylecut123@localhost:5433/stylecut_db
-```
-
-### 2. Comandos Úteis do PostgreSQL
+1. **Criar banco de dados e usuário:**
 ```sql
--- Verificar se o banco existe
-SELECT datname FROM pg_database WHERE datname = 'stylecut_db';
-
--- Listar tabelas
-\dt
-
--- Verificar dados de exemplo
-SELECT * FROM services;
-
--- Status das conexões
-SELECT count(*) FROM pg_stat_activity WHERE datname = 'stylecut_db';
+-- Execute como superuser (postgres)
+CREATE DATABASE stylecut_db;
+CREATE USER stylecut_user WITH PASSWORD 'stylecut123';
+GRANT ALL PRIVILEGES ON DATABASE stylecut_db TO stylecut_user;
 ```
 
-### 3. Configurações de Desenvolvimento
-O sistema está configurado para:
-- **5 tentativas** de conexão com PostgreSQL
-- **Timeout de 3 segundos** por tentativa
-- **Pool de 10 conexões** máximas
-- **Fallback automático** para SQLite se PostgreSQL não estiver disponível
+2. **Configurar arquivo `.env`:**
+```env
+DB_HOST=localhost
+DB_PORT=5433
+DB_NAME=stylecut_db
+DB_USER=postgres
+DB_PASSWORD=stylecut123
+DB_SSL=false
+DB_TIMEOUT=3000
+DB_POOL_SIZE=10
+DB_MAX_ATTEMPTS=5
+NODE_ENV=development
+PORT=3000
+ENABLE_OFFLINE_FALLBACK=true
+DATABASE_URL=postgresql://postgres:stylecut123@localhost:5433/stylecut_db
+```
 
-## SQLite (Fallback Offline)
+3. **Executar script de inicialização:**
+```bash
+# Conectar ao PostgreSQL e executar o script init.sql
+psql -U postgres -d stylecut_db -f database/init.sql
+```
 
-O SQLite é usado automaticamente quando:
-- PostgreSQL não está disponível
-- Há problemas de conectividade
-- Todas as tentativas de conexão falharam
+### Inicialização do Projeto
 
-Arquivo: `server/stylecut_offline.db`
-
-## Comandos para Execução
-
-### Desenvolvimento Completo
 ```bash
 # Instalar dependências
 npm install
 
-# Rodar servidor + frontend
+# Iniciar servidor e frontend simultaneamente
 npm run dev:full
 
-# Rodar apenas o servidor (porta 3000)
-npm run dev:server
+# OU iniciar separadamente:
+# Terminal 1 - Servidor API
+npm run server
 
-# Rodar apenas o frontend (porta 5173)
+# Terminal 2 - Frontend
 npm run dev
 ```
 
-### Verificação de Status
+## SQLite (Fallback/Offline)
+
+O sistema automaticamente utiliza SQLite quando o PostgreSQL não está disponível.
+- Arquivo: `server/stylecut_offline.db`
+- Criado automaticamente na primeira execução
+- Dados salvos localmente no navegador via localStorage
+
+## Estrutura das Tabelas
+
+### clients
+- **id**: UUID (Primary Key)
+- **name**: VARCHAR(255) - Nome completo
+- **phone**: VARCHAR(20) UNIQUE - Telefone no formato (99) 99999-9999
+- **email**: VARCHAR(255) NULLABLE - Email opcional
+- **created_at, updated_at**: TIMESTAMP
+
+### services
+- **id**: UUID (Primary Key)  
+- **name**: VARCHAR(255) - Nome do serviço
+- **price**: DECIMAL(10,2) - Preço em reais
+- **duration**: INTEGER - Duração em minutos
+- **created_at, updated_at**: TIMESTAMP
+
+### professionals
+- **id**: UUID (Primary Key)
+- **name**: VARCHAR(255) - Nome completo
+- **phone**: VARCHAR(20) UNIQUE - Telefone no formato (99) 99999-9999
+- **email**: VARCHAR(255) NULLABLE - Email opcional
+- **created_at, updated_at**: TIMESTAMP
+
+### professional_services
+- **professional_id**: UUID (FK para professionals)
+- **service_id**: UUID (FK para services)
+- Composite Primary Key (professional_id, service_id)
+
+### appointments
+- **id**: UUID (Primary Key)
+- **client_id**: UUID (FK para clients)
+- **professional_id**: UUID (FK para professionals) 
+- **service_id**: UUID (FK para services)
+- **date**: DATE - Data do agendamento
+- **time**: TIME - Horário do agendamento
+- **status**: ENUM('scheduled', 'completed', 'cancelled')
+- **created_at, updated_at**: TIMESTAMP
+- UNIQUE(professional_id, date, time) - Evita conflitos
+
+## Comandos Úteis
+
+### Desenvolvimento
 ```bash
-# Status da aplicação
+# Verificar status do servidor
 curl http://localhost:3000/api/health
 
-# Status detalhado da conexão
+# Verificar conexão com banco
 curl http://localhost:3000/api/status
 
-# Forçar reconexão com PostgreSQL
+# Forçar reconexão PostgreSQL
 curl -X POST http://localhost:3000/api/reconnect
 ```
 
-## Funcionalidades do Sistema
+### Backup e Restauração
+```bash
+# Backup PostgreSQL
+pg_dump -U postgres stylecut_db > backup_$(date +%Y%m%d).sql
 
-### Sistema Híbrido Inteligente
-- **Online**: PostgreSQL com performance otimizada
-- **Offline**: Fallback automático para SQLite
-- **Reconexão**: Tentativas automáticas de reconexão
-- **Monitoramento**: Endpoints para verificar status
+# Restaurar backup
+psql -U postgres -d stylecut_db < backup_20241220.sql
 
-### Dados de Exemplo
-O sistema insere automaticamente serviços de exemplo:
-- Corte Masculino (R$ 25,00 - 30min)
-- Corte Feminino (R$ 45,00 - 60min)
-- Barba (R$ 15,00 - 20min)
-- Manicure (R$ 20,00 - 45min)
-- Pedicure (R$ 25,00 - 60min)
-- Escova (R$ 30,00 - 45min)
-- Hidratação (R$ 35,00 - 60min)
-
-## Troubleshooting
-
-### PostgreSQL não conecta
-1. **Verificar se PostgreSQL está rodando**:
-   ```bash
-   # No Windows
-   net start postgresql
-   
-   # No Linux/Mac
-   sudo systemctl start postgresql
-   ```
-
-2. **Verificar porta e configurações**:
-   - Confirmar porta 5433 no arquivo `.env`
-   - Verificar se `postgresql.conf` permite conexões na porta 5433
-   - Verificar `pg_hba.conf` para autenticação
-
-3. **Testar conexão manual**:
-   ```bash
-   psql -h localhost -p 5433 -U postgres
-   ```
-
-### Logs do Sistema
-O sistema fornece logs detalhados:
-- ✅ Conexões bem-sucedidas
-- ⚠️ Tentativas de reconexão
-- ❌ Falhas de conexão
-- 🔄 Status de fallback
-
-### Reset Completo (Desenvolvimento)
-```sql
--- Conectar ao PostgreSQL e executar:
-DROP DATABASE IF EXISTS stylecut_db;
-CREATE DATABASE stylecut_db;
+# Backup SQLite
+cp server/stylecut_offline.db backup_offline_$(date +%Y%m%d).db
 ```
 
-Depois reiniciar o servidor para recriar as tabelas automaticamente.
+### Logs e Debugging
+```bash
+# Logs do servidor
+npm run server 2>&1 | tee server.log
+
+# Verificar logs específicos
+grep "ERROR\|WARN" server.log
+```
+
+## Resolução de Problemas
+
+### 1. "Endpoint '/api/clients' não encontrado"
+- Verificar se o servidor está rodando na porta 3000
+- Conferir se o PostgreSQL está ativo
+- Verificar configurações do arquivo `.env`
+
+### 2. Erro de conexão PostgreSQL
+```bash
+# Verificar se PostgreSQL está rodando
+sudo systemctl status postgresql  # Linux
+brew services list postgresql     # macOS
+```
+
+### 3. Porta em uso
+```bash
+# Verificar o que está usando a porta
+lsof -i :3000  # macOS/Linux
+netstat -ano | findstr :3000  # Windows
+
+# Matar processo se necessário
+kill -9 <PID>
+```
+
+### 4. Permissões do banco
+```sql
+-- Dar permissões completas ao usuário
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO stylecut_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO stylecut_user;
+```
+
+## URLs de Teste
+
+- **Frontend**: http://localhost:5173
+- **API Health**: http://localhost:3000/api/health
+- **API Status**: http://localhost:3000/api/status
+- **Clientes**: http://localhost:3000/api/clients
+- **Serviços**: http://localhost:3000/api/services
+- **Profissionais**: http://localhost:3000/api/professionals
+- **Agendamentos**: http://localhost:3000/api/appointments

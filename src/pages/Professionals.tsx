@@ -15,12 +15,8 @@ interface Service {
   price: number;
 }
 
-interface Professional {
+interface Professional extends ProfessionalFormData {
   id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  services: string[];
 }
 
 const Professionals: React.FC = () => {
