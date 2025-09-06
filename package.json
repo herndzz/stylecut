@@ -1,0 +1,31 @@
+{
+  "name": "stylecut-react",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --force",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf node_modules/.vite && rm -rf dist"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.45.0",
+    "react-query": "^3.39.0",
+    "@hookform/resolvers": "^3.1.1",
+    "zod": "^3.21.4",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.0",
+    "vite": "^4.4.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  }
+}
