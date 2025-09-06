@@ -1,145 +1,112 @@
-import { Client, Professional, Service, Appointment } from '../types';
-
-// Interface para operações pendentes de sincronização
-interface PendingSyncOperation {
-  type: 'CREATE_CLIENT' | 'CREATE_PROFESSIONAL' | 'CREATE_SERVICE' | 'CREATE_APPOINTMENT';
-  data: any;
-  timestamp: string;
-}
+import { Client, Service, Professional, Appointment } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 class OfflineService {
-  private storageKeys = {
+  private readonly STORAGE_KEYS = {
     clients: 'stylecut_clients',
-    professionals: 'stylecut_professionals',
     services: 'stylecut_services',
+    professionals: 'stylecut_professionals',
     appointments: 'stylecut_appointments',
-    pendingSync: 'stylecut_pending_sync',
   };
 
-  private getFromStorage<T>(key: string): T[] {
-    try {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : [];
-    } catch (error) {
-      console.error(`Erro ao ler do localStorage: ${error}`);
-      return [];
-    }
-  }
-
-  private saveToStorage<T>(key: string, data: T[]): void {
-    try {
-      localStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-      console.error(`Erro ao salvar no localStorage: ${error}`);
-      // Poderia adicionar notificação ao usuário sobre falha de armazenamento
-    }
-  }
-
-  private addToPendingSync(operation: Omit<PendingSyncOperation, 'timestamp'>): void {
-    const pending = this.getFromStorage<PendingSyncOperation>(this.storageKeys.pendingSync);
-    pending.push({ ...operation, timestamp: new Date().toISOString() });
-    this.saveToStorage(this.storageKeys.pendingSync, pending);
-  }
-
+  // Clientes
   getClients(): Client[] {
-    return this.getFromStorage<Client>(this.storageKeys.clients);
+    const data = localStorage.getItem(this.STORAGE_KEYS.clients);
+    return data ? JSON.parse(data) : [];
   }
 
-  addClient(client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Client {
+  async addClient(clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> {
     const clients = this.getClients();
     const newClient: Client = {
-      ...client,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      ...clientData,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
+    
     clients.push(newClient);
-    this.saveToStorage(this.storageKeys.clients, clients);
-    this.addToPendingSync({ type: 'CREATE_CLIENT', data: newClient });
+    localStorage.setItem(this.STORAGE_KEYS.clients, JSON.stringify(clients));
     return newClient;
   }
 
-  searchClientByPhone(phone: string): Client | undefined {
+  async searchClientByPhone(phone: string): Promise<Client | undefined> {
     const clients = this.getClients();
-    const formattedPhone = phone.replace(/\D/g, ''); // Remove caracteres não numéricos
-    return clients.find(client => client.phone.replace(/\D/g, '').includes(formattedPhone));
+    return clients.find(client => client.phone === phone);
   }
 
-  getProfessionals(): Professional[] {
-    return this.getFromStorage<Professional>(this.storageKeys.professionals);
-  }
-
-  addProfessional(professional: Omit<Professional, 'id' | 'createdAt' | 'updatedAt'>): Professional {
-    const professionals = this.getProfessionals();
-    const newProfessional: Professional = {
-      ...professional,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    professionals.push(newProfessional);
-    this.saveToStorage(this.storageKeys.professionals, professionals);
-    this.addToPendingSync({ type: 'CREATE_PROFESSIONAL', data: newProfessional });
-    return newProfessional;
-  }
-
+  // Serviços
   getServices(): Service[] {
-    return this.getFromStorage<Service>(this.storageKeys.services);
+    const data = localStorage.getItem(this.STORAGE_KEYS.services);
+    return data ? JSON.parse(data) : [];
   }
 
-  addService(service: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>): Service {
+  async addService(serviceData: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>): Promise<Service> {
     const services = this.getServices();
     const newService: Service = {
-      ...service,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      ...serviceData,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
+    
     services.push(newService);
-    this.saveToStorage(this.storageKeys.services, services);
-    this.addToPendingSync({ type: 'CREATE_SERVICE', data: newService });
+    localStorage.setItem(this.STORAGE_KEYS.services, JSON.stringify(services));
     return newService;
   }
 
-  getAppointments(): Appointment[] {
-    return this.getFromStorage<Appointment>(this.storageKeys.appointments);
+  // Profissionais
+  getProfessionals(): Professional[] {
+    const data = localStorage.getItem(this.STORAGE_KEYS.professionals);
+    return data ? JSON.parse(data) : [];
   }
 
-  addAppointment(appointment: Omit<Appointment, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Appointment {
-    const appointments = this.getAppointments();
-    const newAppointment: Appointment = {
-      ...appointment,
-      id: Date.now().toString(),
-      status: 'scheduled',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  async addProfessional(professionalData: Omit<Professional, 'id' | 'createdAt' | 'updatedAt'>): Promise<Professional> {
+    const professionals = this.getProfessionals();
+    const newProfessional: Professional = {
+      ...professionalData,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     
+    professionals.push(newProfessional);
+    localStorage.setItem(this.STORAGE_KEYS.professionals, JSON.stringify(professionals));
+    return newProfessional;
+  }
+
+  // Agendamentos
+  getAppointments(): Appointment[] {
+    const data = localStorage.getItem(this.STORAGE_KEYS.appointments);
+    return data ? JSON.parse(data) : [];
+  }
+
+  async addAppointment(appointmentData: Omit<Appointment, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<Appointment> {
+    const appointments = this.getAppointments();
+    
+    // Verificar conflitos
     const hasConflict = appointments.some(apt => 
-      apt.professionalId === newAppointment.professionalId &&
-      apt.date === newAppointment.date &&
-      apt.time === newAppointment.time &&
+      apt.professionalId === appointmentData.professionalId &&
+      apt.date === appointmentData.date &&
+      apt.time === appointmentData.time &&
       apt.status !== 'cancelled'
     );
 
     if (hasConflict) {
-      throw new Error('Já existe um agendamento para este horário');
+      throw new Error('Já existe um agendamento para este profissional neste horário');
     }
 
+    const newAppointment: Appointment = {
+      ...appointmentData,
+      id: uuidv4(),
+      status: 'scheduled',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
     appointments.push(newAppointment);
-    this.saveToStorage(this.storageKeys.appointments, appointments);
-    this.addToPendingSync({ type: 'CREATE_APPOINTMENT', data: newAppointment });
+    localStorage.setItem(this.STORAGE_KEYS.appointments, JSON.stringify(appointments));
     return newAppointment;
-  }
-
-  getPendingSync(): PendingSyncOperation[] {
-    return this.getFromStorage<PendingSyncOperation>(this.storageKeys.pendingSync);
-  }
-
-  clearPendingSync(): void {
-    this.saveToStorage(this.storageKeys.pendingSync, []);
   }
 }
 
-// Exporta uma instância única do serviço
 export const offlineService = new OfflineService();

@@ -8,6 +8,8 @@ interface UseProfessionalsReturn {
   professionals: Professional[];
   isLoading: boolean;
   addProfessional: (data: ProfessionalInput) => void;
+  updateProfessional: (id: string, data: ProfessionalInput) => void;
+  deleteProfessional: (id: string) => void;
   isAdding: boolean;
   error: Error | null;
   isError: boolean;
@@ -62,10 +64,34 @@ export const useProfessionals = (): UseProfessionalsReturn => {
     }
   );
 
+  const updateProfessionalMutation = useMutation<void, Error, { id: string; data: ProfessionalInput }>(
+    async ({ id, data }) => {
+      await axios.put(`/api/professionals/${id}`, data);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('professionals');
+      },
+    }
+  );
+
+  const deleteProfessionalMutation = useMutation<void, Error, string>(
+    async (id) => {
+      await axios.delete(`/api/professionals/${id}`);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('professionals');
+      },
+    }
+  );
+
   return {
     professionals: professionalsQuery.data || [],
     isLoading: professionalsQuery.isLoading,
     addProfessional: addProfessionalMutation.mutate,
+    updateProfessional: (id, data) => updateProfessionalMutation.mutate({ id, data }),
+    deleteProfessional: (id) => deleteProfessionalMutation.mutate(id),
     isAdding: addProfessionalMutation.isLoading,
     error: professionalsQuery.error || addProfessionalMutation.error,
     isError: professionalsQuery.isError || addProfessionalMutation.isError,

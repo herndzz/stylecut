@@ -8,8 +8,10 @@ interface UseClientsReturn {
   clients: Client[];
   isLoading: boolean;
   addClient: (data: ClientInput) => void;
-  isAdding: boolean;
+  updateClient: (id: string, data: ClientInput) => void;
+  deleteClient: (id: string) => void;
   searchByPhone: (phone: string) => Promise<Client | undefined>;
+  isAdding: boolean;
   error: Error | null;
   isError: boolean;
 }
@@ -25,8 +27,11 @@ export const useClients = (): UseClientsReturn => {
       const response = await axios.get('/api/clients');
       return response.data;
     } catch (error) {
-      console.log('Falha na comunicação com o servidor, usando dados offline');
-      // Usa serviço offline apenas em caso de erro de rede
+      if ((error as AxiosError).response?.status === 404) {
+        console.warn("Endpoint '/api/clients' não encontrado. Usando fallback offline.");
+      } else {
+        console.error("Erro ao carregar clientes:", error);
+      }
       return offlineService.getClients();
     }
   });
@@ -63,6 +68,39 @@ export const useClients = (): UseClientsReturn => {
     }
   );
 
+  const updateClientMutation = useMutation<void, Error, { id: string; data: ClientInput }>(
+    async ({ id, data }) => {
+      await axios.put(`/api/clients/${id}`, data);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('clients');
+      },
+    }
+  );
+
+  const deleteClientMutation = useMutation<void, Error, string>(
+    async (id) => {
+      try {
+        await axios.delete(`/api/clients/${id}`);
+      } catch (error) {
+        if ((error as AxiosError).response?.status === 404) {
+          console.warn(`Cliente com ID ${id} não encontrado no servidor. Removendo localmente.`);
+        } else {
+          throw error;
+        }
+      }
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('clients');
+      },
+      onError: (error) => {
+        console.error("Erro ao excluir cliente:", error);
+      },
+    }
+  );
+
   const searchByPhone = async (phone: string): Promise<Client | undefined> => {
     try {
       return await offlineService.searchClientByPhone(phone);
@@ -76,8 +114,10 @@ export const useClients = (): UseClientsReturn => {
     clients: clientsQuery.data || [],
     isLoading: clientsQuery.isLoading,
     addClient: addClientMutation.mutate,
-    isAdding: addClientMutation.isLoading,
+    updateClient: (id, data) => updateClientMutation.mutate({ id, data }),
+    deleteClient: (id) => deleteClientMutation.mutate(id),
     searchByPhone,
+    isAdding: addClientMutation.isLoading,
     error: clientsQuery.error || addClientMutation.error,
     isError: clientsQuery.isError || addClientMutation.isError,
   };

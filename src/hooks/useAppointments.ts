@@ -8,6 +8,8 @@ interface UseAppointmentsReturn {
   appointments: Appointment[];
   isLoading: boolean;
   addAppointment: (data: AppointmentInput) => Promise<Appointment>;
+  updateAppointment: (id: string, data: AppointmentInput) => Promise<void>;
+  deleteAppointment: (id: string) => Promise<void>;
   isAdding: boolean;
   error: Error | null;
   isError: boolean;
@@ -24,8 +26,11 @@ export const useAppointments = (): UseAppointmentsReturn => {
       const response = await axios.get('/api/appointments');
       return response.data;
     } catch (error) {
-      console.log('Falha na comunicação com o servidor, usando dados offline');
-      // Usa serviço offline apenas em caso de erro de rede
+      if ((error as AxiosError).response?.status === 404) {
+        console.warn("Endpoint '/api/appointments' não encontrado. Usando fallback offline.");
+      } else {
+        console.error("Erro ao carregar agendamentos:", error);
+      }
       return offlineService.getAppointments();
     }
   });
@@ -62,10 +67,45 @@ export const useAppointments = (): UseAppointmentsReturn => {
     }
   );
 
+  const updateAppointmentMutation = useMutation<void, Error, { id: string; data: AppointmentInput }>(
+    async ({ id, data }) => {
+      await axios.put(`/api/appointments/${id}`, data);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('appointments');
+      },
+    }
+  );
+
+  const deleteAppointmentMutation = useMutation<void, Error, string>(
+    async (id) => {
+      try {
+        await axios.delete(`/api/appointments/${id}`);
+      } catch (error) {
+        if ((error as AxiosError).response?.status === 404) {
+          console.warn(`Agendamento com ID ${id} não encontrado no servidor. Removendo localmente.`);
+        } else {
+          throw error;
+        }
+      }
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('appointments');
+      },
+      onError: (error) => {
+        console.error("Erro ao excluir agendamento:", error);
+      },
+    }
+  );
+
   return {
     appointments: appointmentsQuery.data || [],
     isLoading: appointmentsQuery.isLoading,
     addAppointment: addAppointmentMutation.mutateAsync,
+    updateAppointment: async (id, data) => updateAppointmentMutation.mutateAsync({ id, data }),
+    deleteAppointment: async (id) => deleteAppointmentMutation.mutateAsync(id),
     isAdding: addAppointmentMutation.isLoading,
     error: appointmentsQuery.error || addAppointmentMutation.error,
     isError: appointmentsQuery.isError || addAppointmentMutation.isError,

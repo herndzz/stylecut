@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { serviceSchema } from "../schemas";
@@ -13,7 +13,8 @@ interface Service extends ServiceFormData {
 }
 
 const Services: React.FC = () => {
-  const { services, isLoading, addService, isAdding } = useServices();
+  const { services, isLoading, addService, updateService, deleteService, isAdding } = useServices();
+  const [editingService, setEditingService] = useState<ServiceFormData | null>(null);
 
   const {
     register,
@@ -25,7 +26,12 @@ const Services: React.FC = () => {
   });
 
   const onSubmit = (data: ServiceFormData) => {
-    addService(data);
+    if (editingService) {
+      updateService(editingService.id, data);
+      setEditingService(null);
+    } else {
+      addService(data);
+    }
     reset();
   };
 
@@ -36,6 +42,15 @@ const Services: React.FC = () => {
       return `${hours}h${mins > 0 ? ` ${mins}min` : ""}`;
     }
     return `${mins}min`;
+  };
+
+  const handleEdit = (service: Service) => {
+    setEditingService(service);
+    reset(service);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteService(id);
   };
 
   return (
@@ -113,6 +128,9 @@ const Services: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Duração
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -126,6 +144,10 @@ const Services: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDuration(service.duration)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button onClick={() => handleEdit(service)} className="btn btn-sm">Editar</button>
+                      <button onClick={() => handleDelete(service.id)} className="btn btn-sm btn-danger ml-2">Excluir</button>
                     </td>
                   </tr>
                 ))}

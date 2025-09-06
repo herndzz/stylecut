@@ -12,10 +12,12 @@ type AppointmentFormData = z.infer<typeof appointmentSchema>;
 
 const Appointments: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
-  const { appointments, isLoading, addAppointment, isAdding } = useAppointments();
-  const { clients = [] } = useClients(); // Garantir que clients seja um array
-  const { professionals = [] } = useProfessionals(); // Garantir que professionals seja um array
-  const { services = [] } = useServices(); // Garantir que services seja um array
+  const [editingAppointment, setEditingAppointment] = useState<AppointmentFormData | null>(null); // Mover para antes dos hooks de contexto
+
+  const { appointments, isLoading, addAppointment, updateAppointment, deleteAppointment, isAdding } = useAppointments();
+  const { clients = [] } = useClients();
+  const { professionals = [] } = useProfessionals();
+  const { services = [] } = useServices();
 
   const {
     register,
@@ -35,10 +37,15 @@ const Appointments: React.FC = () => {
   const onSubmit = async (data: AppointmentFormData) => {
     try {
       setErrorMessage("");
-      await addAppointment(data);
+      if (editingAppointment) {
+        await updateAppointment(editingAppointment.id, data);
+        setEditingAppointment(null);
+      } else {
+        await addAppointment(data);
+      }
       reset();
     } catch (error: any) {
-      setErrorMessage(error?.message || "Erro ao criar agendamento.");
+      setErrorMessage(error?.message || "Erro ao salvar agendamento.");
     }
   };
 
@@ -81,6 +88,19 @@ const Appointments: React.FC = () => {
         {status}
       </span>
     );
+  };
+
+  const handleEdit = (appointment: any) => {
+    setEditingAppointment(appointment);
+    reset(appointment);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteAppointment(id);
+    } catch (error: any) {
+      setErrorMessage(error?.message || "Erro ao excluir agendamento.");
+    }
   };
 
   return (
@@ -206,6 +226,9 @@ const Appointments: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -225,6 +248,10 @@ const Appointments: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(appointment.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button onClick={() => handleEdit(appointment)} className="btn btn-sm">Editar</button>
+                      <button onClick={() => handleDelete(appointment.id)} className="btn btn-sm btn-danger ml-2">Excluir</button>
                     </td>
                   </tr>
                 ))}

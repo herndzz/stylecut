@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { professionalSchema } from "../schemas";
@@ -24,7 +24,7 @@ interface Professional {
 }
 
 const Professionals: React.FC = () => {
-  const { professionals, isLoading, addProfessional, isAdding } = useProfessionals();
+  const { professionals, isLoading, addProfessional, updateProfessional, deleteProfessional, isAdding } = useProfessionals();
   const { services } = useServices();
 
   const {
@@ -37,6 +37,8 @@ const Professionals: React.FC = () => {
   } = useForm<ProfessionalFormData>({
     resolver: zodResolver(professionalSchema),
   });
+
+  const [editingProfessional, setEditingProfessional] = useState<ProfessionalFormData | null>(null);
 
   // Função para formatar o telefone enquanto o usuário digita
   const formatPhone = useCallback((value: string) => {
@@ -81,8 +83,22 @@ const Professionals: React.FC = () => {
   }, [services]);
 
   const onSubmit = (data: ProfessionalFormData) => {
-    addProfessional(data);
+    if (editingProfessional) {
+      updateProfessional(editingProfessional.id, data);
+      setEditingProfessional(null);
+    } else {
+      addProfessional(data);
+    }
     reset();
+  };
+
+  const handleEdit = (professional: Professional) => {
+    setEditingProfessional(professional);
+    reset(professional);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteProfessional(id);
   };
 
   return (
@@ -202,6 +218,10 @@ const Professionals: React.FC = () => {
                       ) : null;
                     })}
                   </div>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button onClick={() => handleEdit(professional)} className="btn btn-sm">Editar</button>
+                  <button onClick={() => handleDelete(professional.id)} className="btn btn-sm btn-danger">Excluir</button>
                 </div>
               </div>
             ))}
