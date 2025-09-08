@@ -113,6 +113,7 @@ Observações:
 - Datas/horários em ISO 8601 UTC; o input usa datetime-local e converte para UTC.
 - Erros 409 de conflito são exibidos ao usuário.
 - Layout simples com Tailwind.
+- Validações de formulário no frontend com React Hook Form + Zod (mensagens inline e bloqueio de submit inválido).
 
 ## Deploy com Docker Compose
 

@@ -4,10 +4,17 @@ const { getKnex } = require('../db/knex');
 
 const router = express.Router();
 
+const ALLOWED_STATUS = new Set(['scheduled','completed','cancelled']);
+
 function parseISODateOnly(dateStr) {
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString().slice(0, 10);
+}
+
+function isValidISODate(s) {
+  const d = new Date(s);
+  return !Number.isNaN(d.getTime()) && /\d{4}-\d{2}-\d{2}T/.test(s);
 }
 
 router.get('/', async (req, res, next) => {
@@ -59,6 +66,9 @@ router.post('/', async (req, res, next) => {
     if (!client_id || !professional_id || !service_id || !start_time) {
       return res.status(400).json({ error: 'client_id, professional_id, service_id and start_time are required' });
     }
+    if (!isValidISODate(start_time)) return res.status(400).json({ error: 'start_time must be ISO 8601' });
+    const st = status || 'scheduled';
+    if (!ALLOWED_STATUS.has(st)) return res.status(400).json({ error: 'invalid status' });
 
     // conflict check (redundant to unique index, but provides friendly message)
     const existing = await knex('appointments')
@@ -69,7 +79,7 @@ router.post('/', async (req, res, next) => {
     const isPg = knex.client.config.client === 'pg';
     const id = isPg ? undefined : uuidv4();
 
-    const payload = { id, client_id, professional_id, service_id, start_time, status: status || 'scheduled' };
+    const payload = { id, client_id, professional_id, service_id, start_time, status: st };
 
     const [created] = await knex('appointments')
       .insert(payload)
@@ -92,6 +102,9 @@ router.put('/:id', async (req, res, next) => {
 
     const current = await knex('appointments').where({ id: req.params.id }).first();
     if (!current) return res.status(404).json({ error: 'Not found' });
+
+    if (start_time && !isValidISODate(start_time)) return res.status(400).json({ error: 'start_time must be ISO 8601' });
+    if (status && !ALLOWED_STATUS.has(status)) return res.status(400).json({ error: 'invalid status' });
 
     const nextProfessionalId = professional_id ?? current.professional_id;
     const nextStartTime = start_time ?? current.start_time;

@@ -7,7 +7,17 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
   try {
     const knex = await getKnex();
-    const rows = await knex('clients').select('*').orderBy('created_at', 'desc');
+    const { q } = req.query;
+    let query = knex('clients').select('*').orderBy('created_at', 'desc');
+    if (q) {
+      const like = `%${q}%`;
+      const isPg = knex.client.config.client === 'pg';
+      const cmp = isPg ? 'ilike' : 'like';
+      query = query.where((b) => {
+        b.where('name', cmp, like).orWhere('email', cmp, like).orWhere('phone', cmp, like);
+      });
+    }
+    const rows = await query;
     res.json(rows);
   } catch (e) { next(e); }
 });

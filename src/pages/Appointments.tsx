@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
 import { Appointment, Client, Professional, Service } from '@/types';
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AppointmentFormSchema, type AppointmentForm } from '@/validation/schemas';
 
 function toISOFromLocal(dt: string) {
   // dt from input[type="datetime-local"] (local time) -> ISO string UTC
@@ -28,52 +31,47 @@ export default function Appointments() {
   const { data: services } = useQuery<Service[]>({ queryKey: ['services'], queryFn: () => api.get('/services') });
 
   const [dateFilter, setDateFilter] = useState<string>('');
-
   const apptQueryKey = useMemo(()=> ['appointments', dateFilter || 'all'], [dateFilter]);
   const { data: appointments, isLoading, error, refetch } = useQuery<Appointment[]>({
     queryKey: apptQueryKey,
     queryFn: () => api.get(`/appointments${dateFilter?`?date=${dateFilter}`:''}`),
   });
-
   useEffect(()=>{ refetch(); }, [dateFilter, refetch]);
 
-  const [form, setForm] = useState<Partial<Appointment>>({ status: 'scheduled' });
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<AppointmentForm>({
+    resolver: zodResolver(AppointmentFormSchema),
+    defaultValues: { client_id: '', professional_id: '', service_id: '', start_time: '', status: 'scheduled' },
+  });
+
   const createMut = useMutation({
     mutationFn: (payload: any) => api.post('/appointments', payload),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: apptQueryKey }); setForm({ status: 'scheduled' }); setErrMsg(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: apptQueryKey }); reset(); setErrMsg(null); },
     onError: (e: any) => setErrMsg(e.message),
   });
   const updateMut = useMutation({
     mutationFn: (payload: any) => api.put(`/appointments/${editing!.id}`, payload),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: apptQueryKey }); setEditing(null); setForm({ status: 'scheduled' }); setErrMsg(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: apptQueryKey }); setEditing(null); reset(); setErrMsg(null); },
     onError: (e: any) => setErrMsg(e.message),
   });
   const deleteMut = useMutation({
     mutationFn: (id: string) => api.delete(`/appointments/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: apptQueryKey }),
   });
-
   const cancelMut = useMutation({
     mutationFn: (id: string) => api.put(`/appointments/${id}`, { status: 'cancelled' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: apptQueryKey }),
   });
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (values: AppointmentForm) => {
     setErrMsg(null);
-    if (!form.client_id || !form.professional_id || !form.service_id || !form.start_time) return alert('Preencha todos os campos');
     const payload = {
-      client_id: form.client_id,
-      professional_id: form.professional_id,
-      service_id: form.service_id,
-      start_time: typeof form.start_time === 'string' && form.start_time.includes('T') ? toISOFromLocal(form.start_time) : form.start_time,
-      status: form.status || 'scheduled',
+      ...values,
+      start_time: values.start_time.includes('T') ? toISOFromLocal(values.start_time) : values.start_time,
     };
-    if (editing) updateMut.mutate(payload);
-    else createMut.mutate(payload);
+    if (editing) updateMut.mutate(payload); else createMut.mutate(payload);
   };
 
   if (isLoading) return <p>Carregando...</p>;
@@ -85,43 +83,47 @@ export default function Appointments() {
 
       <div className="flex items-end gap-2">
         <div>
-          <label className="block text-sm">Filtro por data (YYYY-MM-DD)</label>
-          <input type="date" className="border p-2 rounded" value={dateFilter} onChange={(e)=>setDateFilter(e.target.value)} />
+          <label htmlFor="dateFilter" className="block text-sm">Filtro por data (YYYY-MM-DD)</label>
+          <input id="dateFilter" type="date" className="border p-2 rounded" value={dateFilter} onChange={(e)=>setDateFilter(e.target.value)} />
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
         <div>
-          <label className="block text-sm">Cliente</label>
-          <select className="border p-2 rounded w-full" value={form.client_id||''} onChange={(e)=>setForm({...form, client_id:e.target.value})}>
+          <label htmlFor="client" className="block text-sm">Cliente</label>
+          <select id="client" className="border p-2 rounded w-full" {...register('client_id')}>
             <option value="">Selecione...</option>
             {clients?.map(c=> <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
+          {errors.client_id && <p className="text-red-600 text-xs mt-1">{errors.client_id.message}</p>}
         </div>
         <div>
-          <label className="block text-sm">Profissional</label>
-          <select className="border p-2 rounded w-full" value={form.professional_id||''} onChange={(e)=>setForm({...form, professional_id:e.target.value})}>
+          <label htmlFor="prof" className="block text-sm">Profissional</label>
+          <select id="prof" className="border p-2 rounded w-full" {...register('professional_id')}>
             <option value="">Selecione...</option>
             {professionals?.map(p=> <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
+          {errors.professional_id && <p className="text-red-600 text-xs mt-1">{errors.professional_id.message}</p>}
         </div>
         <div>
-          <label className="block text-sm">Serviço</label>
-          <select className="border p-2 rounded w-full" value={form.service_id||''} onChange={(e)=>setForm({...form, service_id:e.target.value})}>
+          <label htmlFor="serv" className="block text-sm">Serviço</label>
+          <select id="serv" className="border p-2 rounded w-full" {...register('service_id')}>
             <option value="">Selecione...</option>
             {services?.map(s=> <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
+          {errors.service_id && <p className="text-red-600 text-xs mt-1">{errors.service_id.message}</p>}
         </div>
         <div>
-          <label className="block text-sm">Início</label>
-          <input type="datetime-local" className="border p-2 rounded w-full" value={toLocalInputValue(form.start_time as string)} onChange={(e)=>setForm({...form, start_time:e.target.value})} />
+          <label htmlFor="start" className="block text-sm">Início</label>
+          <input id="start" type="datetime-local" className="border p-2 rounded w-full" {...register('start_time')} />
+          {errors.start_time && <p className="text-red-600 text-xs mt-1">{errors.start_time.message}</p>}
         </div>
         <div className="flex gap-2">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded" disabled={createMut.isPending || updateMut.isPending}>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded" disabled={isSubmitting || createMut.isPending || updateMut.isPending}>
             {editing ? 'Salvar' : 'Agendar'}
           </button>
           {editing && (
-            <button type="button" className="px-3 py-2 border rounded" onClick={()=>{setEditing(null); setForm({ status: 'scheduled' }); setErrMsg(null);}}>Cancelar</button>
+            <button type="button" className="px-3 py-2 border rounded" onClick={()=>{setEditing(null); reset(); setErrMsg(null);}}>Cancelar</button>
           )}
         </div>
       </form>
@@ -148,7 +150,7 @@ export default function Appointments() {
               <td className="p-2">{new Date(a.start_time).toLocaleString()}</td>
               <td className="p-2">{a.status}</td>
               <td className="p-2 text-right space-x-2">
-                <button className="px-3 py-1 border rounded" onClick={()=>{setEditing(a); setForm({ client_id:a.client_id, professional_id:a.professional_id, service_id:a.service_id, start_time:a.start_time, status:a.status });}}>Editar</button>
+                <button className="px-3 py-1 border rounded" onClick={()=>{setEditing(a); reset({ client_id:a.client_id, professional_id:a.professional_id, service_id:a.service_id, start_time: toLocalInputValue(a.start_time), status:a.status });}}>Editar</button>
                 {a.status !== 'cancelled' && (
                   <button className="px-3 py-1 border rounded text-yellow-700" onClick={()=>{ if(confirm('Cancelar agendamento?')) cancelMut.mutate(a.id); }}>Cancelar</button>
                 )}
