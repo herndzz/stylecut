@@ -20,7 +20,7 @@ function isValidISODate(s) {
 router.get('/', async (req, res, next) => {
   try {
     const knex = await getKnex();
-    const { date } = req.query; // YYYY-MM-DD in UTC
+    const { date, status } = req.query; // YYYY-MM-DD and optional status
 
     let query = knex('appointments as a')
       .select(
@@ -42,6 +42,9 @@ router.get('/', async (req, res, next) => {
       const start = new Date(`${d}T00:00:00.000Z`).toISOString();
       const end = new Date(`${d}T23:59:59.999Z`).toISOString();
       query = query.whereBetween('a.start_time', [start, end]);
+    }
+    if (status) {
+      query = query.where('a.status', status);
     }
 
     const rows = await query;

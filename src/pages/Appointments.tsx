@@ -31,12 +31,14 @@ export default function Appointments() {
   const { data: services } = useQuery<Service[]>({ queryKey: ['services'], queryFn: () => api.get('/services') });
 
   const [dateFilter, setDateFilter] = useState<string>('');
-  const apptQueryKey = useMemo(()=> ['appointments', dateFilter || 'all'], [dateFilter]);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+
+  const apptQueryKey = useMemo(()=> ['appointments', dateFilter || 'all', statusFilter || 'all'], [dateFilter, statusFilter]);
   const { data: appointments, isLoading, error, refetch } = useQuery<Appointment[]>({
     queryKey: apptQueryKey,
-    queryFn: () => api.get(`/appointments${dateFilter?`?date=${dateFilter}`:''}`),
+    queryFn: () => api.get(`/appointments${[dateFilter?`date=${dateFilter}`:'', statusFilter?`status=${statusFilter}`:''].filter(Boolean).join('&').replace(/^/,'?')}`),
   });
-  useEffect(()=>{ refetch(); }, [dateFilter, refetch]);
+  useEffect(()=>{ refetch(); }, [dateFilter, statusFilter, refetch]);
 
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -85,6 +87,15 @@ export default function Appointments() {
         <div>
           <label htmlFor="dateFilter" className="block text-sm">Filtro por data (YYYY-MM-DD)</label>
           <input id="dateFilter" type="date" className="border p-2 rounded" value={dateFilter} onChange={(e)=>setDateFilter(e.target.value)} />
+        </div>
+        <div>
+          <label htmlFor="statusFilter" className="block text-sm">Status</label>
+          <select id="statusFilter" className="border p-2 rounded" value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)}>
+            <option value="">Todos</option>
+            <option value="scheduled">scheduled</option>
+            <option value="completed">completed</option>
+            <option value="cancelled">cancelled</option>
+          </select>
         </div>
       </div>
 

@@ -5,10 +5,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ClientFormSchema, type ClientForm } from '@/validation/schemas';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function Clients() {
   const qc = useQueryClient();
-  const { data, isLoading, error } = useQuery<Client[]>({ queryKey: ['clients'], queryFn: () => api.get('/clients') });
+  const [q, setQ] = useState('');
+  const dq = useDebounce(q, 300);
+  const { data, isLoading, error } = useQuery<Client[]>({ queryKey: ['clients', dq], queryFn: () => api.get(`/clients${dq?`?q=${encodeURIComponent(dq)}`:''}`) });
 
   const [editing, setEditing] = useState<Client | null>(null);
 
@@ -41,6 +44,13 @@ export default function Clients() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Clientes</h2>
 
+      <div className="flex items-end gap-2">
+        <div className="w-full md:w-64">
+          <label htmlFor="q" className="block text-sm">Buscar</label>
+          <input id="q" className="border p-2 rounded w-full" placeholder="nome, email, telefone" value={q} onChange={(e)=>setQ(e.target.value)} />
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
         <div>
           <label htmlFor="name" className="block text-sm">Nome</label>
@@ -54,7 +64,7 @@ export default function Clients() {
         </div>
         <div>
           <label htmlFor="phone" className="block text-sm">Telefone</label>
-          <input id="phone" className="border p-2 rounded w-full" {...register('phone')} />
+          <input id="phone" className="border p-2 rounded w-full" pattern="[0-9()+\-\s]{8,20}" title="Apenas dígitos, espaços, + - ( ) — 8 a 20 caracteres" {...register('phone')} />
           {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone.message}</p>}
         </div>
         <div className="flex gap-2">

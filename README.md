@@ -106,8 +106,8 @@ npm run preview
 ```
 
 Páginas:
-- /clients, /professionals, /services: CRUD completo
-- /appointments: criar, listar, editar, cancelar e excluir; filtro por data (YYYY-MM-DD)
+- /clients, /professionals, /services: CRUD completo + busca (campo "Buscar")
+- /appointments: criar, listar, editar, cancelar e excluir; filtros por data e status
 
 Observações:
 - Datas/horários em ISO 8601 UTC; o input usa datetime-local e converte para UTC.

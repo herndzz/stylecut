@@ -5,10 +5,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ServiceFormSchema, type ServiceForm } from '@/validation/schemas';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function Services() {
   const qc = useQueryClient();
-  const { data, isLoading, error } = useQuery<Service[]>({ queryKey: ['services'], queryFn: () => api.get('/services') });
+  const [q, setQ] = useState('');
+  const dq = useDebounce(q, 300);
+  const { data, isLoading, error } = useQuery<Service[]>({ queryKey: ['services', dq], queryFn: () => api.get(`/services${dq?`?q=${encodeURIComponent(dq)}`:''}`) });
 
   const [editing, setEditing] = useState<Service | null>(null);
 
@@ -40,6 +43,13 @@ export default function Services() {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Serviços</h2>
+
+      <div className="flex items-end gap-2">
+        <div className="w-full md:w-64">
+          <label htmlFor="q" className="block text-sm">Buscar</label>
+          <input id="q" className="border p-2 rounded w-full" placeholder="nome, descrição" value={q} onChange={(e)=>setQ(e.target.value)} />
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
         <div>
