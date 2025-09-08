@@ -1,0 +1,36 @@
+{
+  "name": "stylecut-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-native": "0.75.0",
+    "@react-navigation/native": "^6.1.17",
+    "@react-navigation/native-stack": "^6.9.26",
+    "react-native-screens": "^3.32.0",
+    "react-native-safe-area-context": "^4.10.5",
+    "react-native-gesture-handler": "^2.16.2",
+    "@tanstack/react-query": "^5.51.1",
+    "axios": "^1.7.7",
+    "nativewind": "^2.0.11",
+    "tailwindcss": "^3.4.10"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2",
+    "@types/react": "^18.2.48",
+    "@types/react-native": "^0.75.4",
+    "eslint": "^8.57.0",
+    "@react-native/eslint-config": "^0.74.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "metro-react-native-babel-preset": "^0.77.0",
+    "react-native-dotenv": "^3.4.9"
+  }
+}
