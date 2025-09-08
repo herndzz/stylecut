@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getKnex } = require('../db/knex');
+const { appointmentCreateSchema, appointmentUpdateSchema } = require('../validation/schemas');
 
 const router = express.Router();
 
@@ -20,21 +21,20 @@ function isValidISODate(s) {
 router.get('/', async (req, res, next) => {
   try {
     const knex = await getKnex();
-    const { date, status } = req.query; // YYYY-MM-DD and optional status
+    const { date, status, limit = 50, offset = 0, sort = 'a.start_time', order = 'asc' } = req.query;
+
+    const allowedSort = new Set(['a.start_time','a.created_at','a.status']);
+    const s = allowedSort.has(sort) ? sort : 'a.start_time';
+    const o = ['asc','desc'].includes(String(order).toLowerCase()) ? order : 'asc';
 
     let query = knex('appointments as a')
-      .select(
-        'a.*',
-        'c.name as client_name',
-        'p.name as professional_name',
-        's.name as service_name',
-        's.duration_minutes',
-        's.price_cents'
-      )
+      .select('a.*','c.name as client_name','p.name as professional_name','s.name as service_name','s.duration_minutes','s.price_cents')
       .leftJoin('clients as c', 'c.id', 'a.client_id')
       .leftJoin('professionals as p', 'p.id', 'a.professional_id')
       .leftJoin('services as s', 's.id', 'a.service_id')
-      .orderBy('a.start_time', 'asc');
+      .orderByRaw(`${s} ${o}`)
+      .limit(Number(limit))
+      .offset(Number(offset));
 
     if (date) {
       const d = parseISODateOnly(date);
@@ -43,9 +43,7 @@ router.get('/', async (req, res, next) => {
       const end = new Date(`${d}T23:59:59.999Z`).toISOString();
       query = query.whereBetween('a.start_time', [start, end]);
     }
-    if (status) {
-      query = query.where('a.status', status);
-    }
+    if (status) query = query.where('a.status', status);
 
     const rows = await query;
     res.json(rows);
@@ -63,8 +61,9 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
+    const body = appointmentCreateSchema.parse(req.body);
     const knex = await getKnex();
-    const { client_id, professional_id, service_id, start_time, status } = req.body;
+    const { client_id, professional_id, service_id, start_time, status } = body;
 
     if (!client_id || !professional_id || !service_id || !start_time) {
       return res.status(400).json({ error: 'client_id, professional_id, service_id and start_time are required' });
@@ -100,8 +99,9 @@ router.post('/', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   try {
+    const body = appointmentUpdateSchema.parse(req.body);
     const knex = await getKnex();
-    const { client_id, professional_id, service_id, start_time, status } = req.body;
+    const { client_id, professional_id, service_id, start_time, status } = body;
 
     const current = await knex('appointments').where({ id: req.params.id }).first();
     if (!current) return res.status(404).json({ error: 'Not found' });

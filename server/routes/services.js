@@ -1,14 +1,18 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getKnex } = require('../db/knex');
+const { serviceSchema } = require('../validation/schemas');
 
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
     const knex = await getKnex();
-    const { q } = req.query;
-    let query = knex('services').select('*').orderBy('created_at', 'desc');
+    const { q, limit = 50, offset = 0, sort = 'created_at', order = 'desc' } = req.query;
+    const allowedSort = new Set(['name','duration_minutes','price_cents','created_at']);
+    const s = allowedSort.has(sort) ? sort : 'created_at';
+    const o = ['asc','desc'].includes(String(order).toLowerCase()) ? order : 'desc';
+    let query = knex('services').select('*').orderBy(s, o).limit(Number(limit)).offset(Number(offset));
     if (q) {
       const like = `%${q}%`;
       const isPg = knex.client.config.client === 'pg';
@@ -33,8 +37,9 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
+    const payload = serviceSchema.parse(req.body);
     const knex = await getKnex();
-    const { name, duration_minutes, price_cents, description } = req.body;
+    const { name, duration_minutes, price_cents, description } = payload;
     if (!name) return res.status(400).json({ error: 'name is required' });
     if (duration_minutes == null) return res.status(400).json({ error: 'duration_minutes is required' });
     if (price_cents == null) return res.status(400).json({ error: 'price_cents is required' });
@@ -47,13 +52,17 @@ router.post('/', async (req, res, next) => {
       .returning('*');
 
     res.status(201).json(created || (await knex('services').where({ id }).first()));
-  } catch (e) { next(e); }
+  } catch (e) {
+    if (e.errors) return res.status(400).json({ error: e.errors[0].message });
+    next(e);
+  }
 });
 
 router.put('/:id', async (req, res, next) => {
   try {
+    const payload = serviceSchema.partial().parse(req.body);
     const knex = await getKnex();
-    const { name, duration_minutes, price_cents, description } = req.body;
+    const { name, duration_minutes, price_cents, description } = payload;
 
     const [updated] = await knex('services')
       .where({ id: req.params.id })
@@ -62,7 +71,10 @@ router.put('/:id', async (req, res, next) => {
 
     if (!updated) return res.status(404).json({ error: 'Not found' });
     res.json(updated || (await knex('services').where({ id: req.params.id }).first()));
-  } catch (e) { next(e); }
+  } catch (e) {
+    if (e.errors) return res.status(400).json({ error: e.errors[0].message });
+    next(e);
+  }
 });
 
 router.delete('/:id', async (req, res, next) => {

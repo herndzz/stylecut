@@ -2,9 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
 import { Professional } from '@/types';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProfessionalFormSchema, type ProfessionalForm } from '@/validation/schemas';
+import PhoneInput from '@/components/ui/PhoneInput';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export default function Professionals() {
@@ -15,7 +16,7 @@ export default function Professionals() {
 
   const [editing, setEditing] = useState<Professional | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfessionalForm>({
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<ProfessionalForm>({
     resolver: zodResolver(ProfessionalFormSchema),
     defaultValues: { name: '', email: '', phone: '' },
   });
@@ -64,7 +65,13 @@ export default function Professionals() {
         </div>
         <div>
           <label htmlFor="phone" className="block text-sm">Telefone</label>
-          <input id="phone" className="border p-2 rounded w-full" pattern="[0-9()+\-\s]{8,20}" title="Apenas dígitos, espaços, + - ( ) — 8 a 20 caracteres" {...register('phone')} />
+          <Controller
+            control={control}
+            name="phone"
+            render={({ field }) => (
+              <PhoneInput id="phone" className="border p-2 rounded w-full" value={field.value} onChange={field.onChange} />
+            )}
+          />
           {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone.message}</p>}
         </div>
         <div className="flex gap-2">

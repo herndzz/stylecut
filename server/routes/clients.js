@@ -1,14 +1,18 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getKnex } = require('../db/knex');
+const { clientSchema } = require('../validation/schemas');
 
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
     const knex = await getKnex();
-    const { q } = req.query;
-    let query = knex('clients').select('*').orderBy('created_at', 'desc');
+    const { q, limit = 50, offset = 0, sort = 'created_at', order = 'desc' } = req.query;
+    const allowedSort = new Set(['name','email','phone','created_at']);
+    const s = allowedSort.has(sort) ? sort : 'created_at';
+    const o = ['asc','desc'].includes(String(order).toLowerCase()) ? order : 'desc';
+    let query = knex('clients').select('*').orderBy(s, o).limit(Number(limit)).offset(Number(offset));
     if (q) {
       const like = `%${q}%`;
       const isPg = knex.client.config.client === 'pg';
@@ -33,8 +37,9 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
+    const payload = clientSchema.parse(req.body);
     const knex = await getKnex();
-    const { name, email, phone } = req.body;
+    const { name, email, phone } = payload;
     if (!name) return res.status(400).json({ error: 'name is required' });
 
     const isPg = knex.client.config.client === 'pg';
@@ -49,14 +54,16 @@ router.post('/', async (req, res, next) => {
     if (e.code === 'SQLITE_CONSTRAINT' || e.code === '23505') {
       return res.status(409).json({ error: 'Phone already in use' });
     }
+    if (e.errors) return res.status(400).json({ error: e.errors[0].message });
     next(e);
   }
 });
 
 router.put('/:id', async (req, res, next) => {
   try {
+    const payload = clientSchema.partial().parse(req.body);
     const knex = await getKnex();
-    const { name, email, phone } = req.body;
+    const { name, email, phone } = payload;
 
     const [updated] = await knex('clients')
       .where({ id: req.params.id })
@@ -69,6 +76,7 @@ router.put('/:id', async (req, res, next) => {
     if (e.code === 'SQLITE_CONSTRAINT' || e.code === '23505') {
       return res.status(409).json({ error: 'Phone already in use' });
     }
+    if (e.errors) return res.status(400).json({ error: e.errors[0].message });
     next(e);
   }
 });

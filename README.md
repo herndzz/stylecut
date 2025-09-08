@@ -114,6 +114,9 @@ Observações:
 - Erros 409 de conflito são exibidos ao usuário.
 - Layout simples com Tailwind.
 - Validações de formulário no frontend com React Hook Form + Zod (mensagens inline e bloqueio de submit inválido).
+- React Query configurado com staleTime/gcTime; mutações com optimistic updates e rollback em Serviços.
+- Máscaras: telefone (BR) e moeda (BRL) no frontend.
+- Virtualização opcional de listas (react-window) em Serviços para muitos itens.
 
 ## Deploy com Docker Compose
 

@@ -1,44 +1,46 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/api/client';
-import { Service } from '@/types';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ServiceFormSchema, type ServiceForm } from '@/validation/schemas';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useServices } from '@/hooks/useServices';
+import type { Service } from '@/types';
+import ServiceForm from '@/components/services/ServiceForm';
+import ServiceItem from '@/components/services/ServiceItem';
+import { FlatList } from '@/components/ui/FlatList';
+import { FixedSizeList as List } from 'react-window';
+import { useToast } from '@/components/ui/ToastProvider';
 
 export default function Services() {
-  const qc = useQueryClient();
   const [q, setQ] = useState('');
   const dq = useDebounce(q, 300);
-  const { data, isLoading, error } = useQuery<Service[]>({ queryKey: ['services', dq], queryFn: () => api.get(`/services${dq?`?q=${encodeURIComponent(dq)}`:''}`) });
+  const { list, create, update, remove } = useServices(dq);
+  const { notify } = useToast();
 
   const [editing, setEditing] = useState<Service | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ServiceForm>({
-    resolver: zodResolver(ServiceFormSchema),
-    defaultValues: { name: '', duration_minutes: 30, price_cents: 0, description: '' },
-  });
-
-  const createMut = useMutation({
-    mutationFn: (payload: ServiceForm) => api.post('/services', payload),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); reset(); },
-  });
-  const updateMut = useMutation({
-    mutationFn: (payload: ServiceForm) => api.put(`/services/${editing!.id}`, payload),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); setEditing(null); reset(); },
-  });
-  const deleteMut = useMutation({
-    mutationFn: (id: string) => api.delete(`/services/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['services'] }),
-  });
-
-  const onSubmit = (values: ServiceForm) => {
-    if (editing) updateMut.mutate(values); else createMut.mutate(values);
+  const onCreate = (values: any) => {
+    create.mutate(values, {
+      onSuccess: () => notify({ type: 'success', message: 'Serviço criado' }),
+      onError: (e: any) => notify({ type: 'error', message: e.message || 'Erro ao criar' }),
+    });
+  };
+  const onUpdate = (values: any) => {
+    if (!editing) return;
+    update.mutate({ id: editing.id, data: values }, {
+      onSuccess: () => { setEditing(null); notify({ type: 'success', message: 'Serviço atualizado' }); },
+      onError: (e: any) => notify({ type: 'error', message: e.message || 'Erro ao atualizar' }),
+    });
+  };
+  const onDelete = (id: string) => {
+    if (!confirm('Excluir serviço?')) return;
+    remove.mutate(id, {
+      onSuccess: () => notify({ type: 'success', message: 'Serviço excluído' }),
+      onError: (e: any) => notify({ type: 'error', message: e.message || 'Erro ao excluir' }),
+    });
   };
 
-  if (isLoading) return <p>Carregando...</p>;
-  if (error) return <p>Erro: {(error as Error).message}</p>;
+  if (list.isLoading) return <p>Carregando...</p>;
+  if (list.error) return <p>Erro: {(list.error as Error).message}</p>;
+
+  const items = list.data || [];
 
   return (
     <div className="space-y-4">
@@ -51,61 +53,34 @@ export default function Services() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
-        <div>
-          <label htmlFor="name" className="block text-sm">Nome</label>
-          <input id="name" className="border p-2 rounded w-full" {...register('name')} />
-          {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="duration" className="block text-sm">Duração (min)</label>
-          <input id="duration" type="number" className="border p-2 rounded w-full" {...register('duration_minutes', { valueAsNumber: true })} />
-          {errors.duration_minutes && <p className="text-red-600 text-xs mt-1">{errors.duration_minutes.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="price" className="block text-sm">Preço (centavos)</label>
-          <input id="price" type="number" className="border p-2 rounded w-full" {...register('price_cents', { valueAsNumber: true })} />
-          {errors.price_cents && <p className="text-red-600 text-xs mt-1">{errors.price_cents.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="desc" className="block text-sm">Descrição</label>
-          <input id="desc" className="border p-2 rounded w-full" {...register('description')} />
-        </div>
-        <div className="flex gap-2">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded" disabled={isSubmitting || createMut.isPending || updateMut.isPending}>
-            {editing ? 'Salvar' : 'Adicionar'}
-          </button>
-          {editing && (
-            <button type="button" className="px-3 py-2 border rounded" onClick={()=>{setEditing(null); reset();}}>Cancelar</button>
-          )}
-        </div>
-      </form>
+      <div className="border rounded p-3 bg-white">
+        <h3 className="font-medium mb-2">{editing ? 'Editar serviço' : 'Novo serviço'}</h3>
+        <ServiceForm
+          initialValues={editing ? { name: editing.name, duration_minutes: editing.duration_minutes, price_cents: editing.price_cents, description: editing.description || '' } : undefined}
+          onSubmit={editing ? onUpdate : onCreate}
+          onCancel={editing ? () => setEditing(null) : undefined}
+          submitting={create.isPending || update.isPending}
+        />
+      </div>
 
-      <table className="w-full text-sm border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 text-left">Nome</th>
-            <th className="p-2 text-left">Duração</th>
-            <th className="p-2 text-left">Preço</th>
-            <th className="p-2 text-left">Descrição</th>
-            <th className="p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.map((s)=> (
-            <tr key={s.id} className="border-t">
-              <td className="p-2">{s.name}</td>
-              <td className="p-2">{s.duration_minutes} min</td>
-              <td className="p-2">R$ {(s.price_cents/100).toFixed(2)}</td>
-              <td className="p-2">{s.description}</td>
-              <td className="p-2 text-right space-x-2">
-                <button className="px-3 py-1 border rounded" onClick={()=>{setEditing(s); reset({ name:s.name, duration_minutes:s.duration_minutes, price_cents:s.price_cents, description:s.description||'' });}}>Editar</button>
-                <button className="px-3 py-1 border rounded text-red-600" onClick={()=>{ if(confirm('Excluir serviço?')) deleteMut.mutate(s.id); }}>Excluir</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {items.length > 30 ? (
+        <List height={480} itemCount={items.length} itemSize={84} width={'100%'}>
+          {({ index, style }) => (
+            <div style={style}>
+              <ServiceItem service={items[index]} onEdit={setEditing} onDelete={onDelete} />
+            </div>
+          )}
+        </List>
+      ) : (
+        <FlatList<Service>
+          items={items}
+          keyExtractor={(s) => s.id}
+          renderItem={(s) => (
+            <ServiceItem service={s} onEdit={setEditing} onDelete={onDelete} />
+          )}
+          empty={<p className="text-sm text-gray-500">Nenhum serviço encontrado</p>}
+        />
+      )}
     </div>
   );
 }

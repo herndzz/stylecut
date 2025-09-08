@@ -7,7 +7,7 @@ describe('Clients CRUD', () => {
   beforeEach(async () => { await truncateAll(); });
 
   test('create, list, update, delete client', async () => {
-    const created = await request(app).post('/api/clients').send({ name: 'Alice', email: 'a@x.com', phone: '111' }).expect(201);
+    const created = await request(app).post('/api/clients').send({ name: 'Alice', email: 'a@x.com', phone: '11111111' }).expect(201);
     expect(created.body.name).toBe('Alice');
 
     const list1 = await request(app).get('/api/clients').expect(200);

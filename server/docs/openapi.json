@@ -1,0 +1,23 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "StyleCut API", "version": "0.1.0" },
+  "servers": [{ "url": "/api" }],
+  "paths": {
+    "/clients": {
+      "get": { "summary": "List clients", "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create client", "responses": { "201": { "description": "Created" } } }
+    },
+    "/professionals": {
+      "get": { "summary": "List professionals", "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create professional", "responses": { "201": { "description": "Created" } } }
+    },
+    "/services": {
+      "get": { "summary": "List services", "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create service", "responses": { "201": { "description": "Created" } } }
+    },
+    "/appointments": {
+      "get": { "summary": "List appointments", "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create appointment", "responses": { "201": { "description": "Created" } } }
+    }
+  }
+}
