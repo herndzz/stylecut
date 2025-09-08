@@ -1,0 +1,19 @@
+FROM node:18-alpine AS base
+WORKDIR /app
+
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN if [ -f package-lock.json ]; then npm ci; \
+    elif [ -f yarn.lock ]; then yarn install; \
+    elif [ -f pnpm-lock.yaml ]; then corepack enable && pnpm i; \
+    else npm i; fi
+
+COPY index.html ./
+COPY vite.config.ts ./
+COPY tsconfig*.json ./
+COPY tailwind.config.js postcss.config.js ./
+COPY .env* ./
+COPY src ./src
+
+EXPOSE 5173
+# Vite precisa ouvir em 0.0.0.0 para acesso externo
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

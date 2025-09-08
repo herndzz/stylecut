@@ -1,0 +1,67 @@
+const express = require('express');
+const { v4: uuidv4 } = require('uuid');
+const { getKnex } = require('../db/knex');
+
+const router = express.Router();
+
+router.get('/', async (req, res, next) => {
+  try {
+    const knex = await getKnex();
+    const rows = await knex('services').select('*').orderBy('created_at', 'desc');
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+
+router.get('/:id', async (req, res, next) => {
+  try {
+    const knex = await getKnex();
+    const row = await knex('services').where({ id: req.params.id }).first();
+    if (!row) return res.status(404).json({ error: 'Not found' });
+    res.json(row);
+  } catch (e) { next(e); }
+});
+
+router.post('/', async (req, res, next) => {
+  try {
+    const knex = await getKnex();
+    const { name, duration_minutes, price_cents, description } = req.body;
+    if (!name) return res.status(400).json({ error: 'name is required' });
+    if (duration_minutes == null) return res.status(400).json({ error: 'duration_minutes is required' });
+    if (price_cents == null) return res.status(400).json({ error: 'price_cents is required' });
+
+    const isPg = knex.client.config.client === 'pg';
+    const id = isPg ? undefined : uuidv4();
+
+    const [created] = await knex('services')
+      .insert({ id, name, duration_minutes, price_cents, description })
+      .returning('*');
+
+    res.status(201).json(created || (await knex('services').where({ id }).first()));
+  } catch (e) { next(e); }
+});
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const knex = await getKnex();
+    const { name, duration_minutes, price_cents, description } = req.body;
+
+    const [updated] = await knex('services')
+      .where({ id: req.params.id })
+      .update({ name, duration_minutes, price_cents, description, updated_at: knex.fn.now() })
+      .returning('*');
+
+    if (!updated) return res.status(404).json({ error: 'Not found' });
+    res.json(updated || (await knex('services').where({ id: req.params.id }).first()));
+  } catch (e) { next(e); }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const knex = await getKnex();
+    const deleted = await knex('services').where({ id: req.params.id }).del();
+    if (!deleted) return res.status(404).json({ error: 'Not found' });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+module.exports = router;
